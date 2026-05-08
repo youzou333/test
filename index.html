@@ -10,7 +10,7 @@
 
     body {
       font-family: 'Hiragino Kochi Pro', 'ヒラギノ角ゴ ProN', 'Hiragino Sans', 'メイリオ', sans-serif;
-      background: linear-gradient(135deg, #1a1208 0%, #2d1f10 40%, #3d2a18 100%);
+      background: linear-gradient(135deg, #1a3a1a 0%, #2a5228 50%, #386038 100%);
       min-height: 100vh;
       padding: 20px;
       color: #4a3728;
@@ -34,15 +34,18 @@
     }
 
     .header-icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #2a1a08, #1a0f04);
+      width: 68px;
+      height: 68px;
       border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       flex-shrink: 0;
+    }
+    .header-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .header h1 {
@@ -456,25 +459,7 @@
   <!-- Header -->
   <div class="header">
     <div class="header-icon">
-      <!-- Mini white pug icon -->
-      <svg width="48" height="48" viewBox="0 0 100 100">
-        <circle cx="50" cy="48" r="30" fill="#f5e8d0"/>
-        <ellipse cx="50" cy="58" rx="18" ry="13" fill="#e0c898"/>
-        <ellipse cx="50" cy="52" rx="8" ry="5.5" fill="#2a1208"/>
-        <circle cx="37" cy="43" r="7.5" fill="#2a1208"/>
-        <circle cx="37" cy="43" r="5" fill="#3d2010"/>
-        <circle cx="35" cy="41" r="2.2" fill="white"/>
-        <circle cx="63" cy="43" r="7.5" fill="#2a1208"/>
-        <circle cx="63" cy="43" r="5" fill="#3d2010"/>
-        <circle cx="61" cy="41" r="2.2" fill="white"/>
-        <ellipse cx="50" cy="70" rx="12" ry="9" fill="#e05870"/>
-        <ellipse cx="50" cy="65" rx="12" ry="7" fill="#e86880"/>
-        <line x1="50" y1="62" x2="50" y2="76" stroke="#c04860" stroke-width="1.5" opacity="0.5"/>
-        <ellipse cx="38" cy="25" rx="11" ry="15" fill="#d4b888" transform="rotate(-15 38 25)"/>
-        <ellipse cx="62" cy="25" rx="11" ry="15" fill="#d4b888" transform="rotate(15 62 25)"/>
-        <path d="M38 30 Q50 25 62 30" stroke="#c8a870" stroke-width="1.5" fill="none" opacity="0.7"/>
-        <path d="M40 34 Q50 30 60 34" stroke="#c8a870" stroke-width="1" fill="none" opacity="0.5"/>
-      </svg>
+      <img src="icon.png" alt="わんこ体重管理アイコン" onerror="this.style.display='none'; this.parentElement.innerHTML='🐾';">
     </div>
     <div>
       <h1>わんこ体重管理</h1>
@@ -499,11 +484,11 @@
             <ellipse cx="128" cy="192" rx="14" ry="9" fill="#e8d4b8"/>
             <!-- Tail curled -->
             <path d="M144 158 Q168 145 163 126 Q158 110 145 114 Q136 118 140 130" stroke="#d4b888" stroke-width="10" fill="none" stroke-linecap="round"/>
-            <!-- Ears -->
-            <ellipse cx="52" cy="64" rx="22" ry="30" fill="#c8a870" transform="rotate(-18 52 64)"/>
-            <ellipse cx="148" cy="64" rx="22" ry="30" fill="#c8a870" transform="rotate(18 148 64)"/>
-            <ellipse cx="52" cy="66" rx="12" ry="18" fill="#d4b888" opacity="0.5" transform="rotate(-18 52 66)"/>
-            <ellipse cx="148" cy="66" rx="12" ry="18" fill="#d4b888" opacity="0.5" transform="rotate(18 148 66)"/>
+            <!-- Ears: wide & low = pug button ears, NOT tall = not mouse ears -->
+            <ellipse cx="50" cy="80" rx="28" ry="18" fill="#c8a060" transform="rotate(-12 50 80)"/>
+            <ellipse cx="50" cy="82" rx="17" ry="10" fill="#d8b878" opacity="0.5" transform="rotate(-12 50 82)"/>
+            <ellipse cx="150" cy="80" rx="28" ry="18" fill="#c8a060" transform="rotate(12 150 80)"/>
+            <ellipse cx="150" cy="82" rx="17" ry="10" fill="#d8b878" opacity="0.5" transform="rotate(12 150 82)"/>
             <!-- Main head -->
             <circle cx="100" cy="96" r="58" fill="#f8eedc"/>
             <!-- Forehead wrinkle folds -->
