@@ -459,7 +459,52 @@
   <!-- Header -->
   <div class="header">
     <div class="header-icon">
-      <img src="icon.png" alt="わんこ体重管理アイコン" onerror="this.style.display='none'; this.parentElement.innerHTML='🐾';">
+      <svg width="68" height="68" viewBox="0 0 100 100">
+        <!-- Icon background -->
+        <rect width="100" height="100" rx="20" fill="#f0e4c8"/>
+        <!-- Scale -->
+        <rect x="14" y="76" width="72" height="16" rx="4" fill="#e0d8c8"/>
+        <rect x="18" y="79" width="64" height="9" rx="2" fill="#d0c8b8"/>
+        <rect x="34" y="80" width="32" height="6" rx="1" fill="#bfb8a8"/>
+        <text x="50" y="86" text-anchor="middle" font-size="5.5" fill="#888" font-family="monospace">0.0</text>
+        <!-- Left ear: small folded flap at SIDE of head (not top) -->
+        <path d="M15 40 Q9 50 13 60 Q19 67 30 61 Q37 53 30 42 Q24 34 15 40Z" fill="#c8a050"/>
+        <path d="M18 44 Q14 51 17 57 Q21 62 28 57 Q33 51 28 44 Q23 39 18 44Z" fill="#d8b868" opacity="0.55"/>
+        <!-- Right ear: small folded flap at SIDE of head (not top) -->
+        <path d="M85 40 Q91 50 87 60 Q81 67 70 61 Q63 53 70 42 Q76 34 85 40Z" fill="#c8a050"/>
+        <path d="M82 44 Q86 51 83 57 Q79 62 72 57 Q67 51 72 44 Q77 39 82 44Z" fill="#d8b868" opacity="0.55"/>
+        <!-- Head (drawn after ears so it covers inner ear) -->
+        <circle cx="50" cy="46" r="34" fill="#f6ecd8"/>
+        <!-- Forehead wrinkles -->
+        <path d="M34 30 Q50 25 66 30" stroke="#ddc89a" stroke-width="1.8" fill="none" opacity="0.75"/>
+        <path d="M37 23 Q50 19 63 23" stroke="#ddc89a" stroke-width="1.1" fill="none" opacity="0.45"/>
+        <!-- Dark mask around eyes (typical fawn pug marking) -->
+        <ellipse cx="50" cy="46" rx="27" ry="19" fill="#3a2010" opacity="0.14"/>
+        <!-- Eyes -->
+        <circle cx="37" cy="42" r="9.5" fill="#2a1208"/>
+        <circle cx="37" cy="42" r="7"   fill="#3d2010"/>
+        <circle cx="34" cy="39" r="3"   fill="white"/>
+        <circle cx="35" cy="40" r="1.4" fill="white" opacity="0.6"/>
+        <circle cx="63" cy="42" r="9.5" fill="#2a1208"/>
+        <circle cx="63" cy="42" r="7"   fill="#3d2010"/>
+        <circle cx="60" cy="39" r="3"   fill="white"/>
+        <circle cx="61" cy="40" r="1.4" fill="white" opacity="0.6"/>
+        <!-- Muzzle -->
+        <ellipse cx="50" cy="57" rx="19" ry="14" fill="#ead5a5"/>
+        <!-- Nose: wide and flat -->
+        <ellipse cx="50" cy="51" rx="12" ry="7.5" fill="#2a1208"/>
+        <ellipse cx="44" cy="50" rx="3.5" ry="2.2" fill="#3d1808" opacity="0.45"/>
+        <ellipse cx="56" cy="50" rx="3.5" ry="2.2" fill="#3d1808" opacity="0.45"/>
+        <ellipse cx="46" cy="49" rx="2"   ry="1.3" fill="rgba(255,255,255,0.32)"/>
+        <!-- Cheeks blush -->
+        <ellipse cx="32" cy="57" rx="8" ry="5" fill="#ffb0a0" opacity="0.28"/>
+        <ellipse cx="68" cy="57" rx="8" ry="5" fill="#ffb0a0" opacity="0.28"/>
+        <!-- Tongue -->
+        <ellipse cx="50" cy="71" rx="11" ry="8"   fill="#d84868"/>
+        <ellipse cx="50" cy="66" rx="11" ry="6.5" fill="#e85878"/>
+        <line x1="50" y1="62" x2="50" y2="78" stroke="#c03858" stroke-width="1.6" opacity="0.38"/>
+        <ellipse cx="47" cy="65" rx="3" ry="4.5" fill="rgba(255,255,255,0.2)"/>
+      </svg>
     </div>
     <div>
       <h1>わんこ体重管理</h1>
