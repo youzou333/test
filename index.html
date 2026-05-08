@@ -317,6 +317,16 @@
     }
     .notes-textarea::placeholder { color: #c0a080; }
 
+    .date-notice {
+      font-size: 12px;
+      color: #b07030;
+      background: rgba(255,200,100,0.18);
+      border: 1px solid rgba(200,150,50,0.3);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-bottom: 14px;
+    }
+
     .submit-btn {
       width: 100%;
       padding: 16px;
@@ -648,6 +658,7 @@
           <span class="form-label">年月日</span>
           <input type="date" id="dateInput" class="form-input">
         </div>
+        <p class="date-notice">⚠️ 記録できるのは本日以前の日付のみです</p>
 
         <div class="form-row">
           <span class="form-label">体重</span>
@@ -743,7 +754,9 @@
 
   /* ---- Init ---- */
   function init() {
-    document.getElementById('dateInput').value = fmtDateVal(new Date());
+    const todayStr = fmtDateVal(new Date());
+    document.getElementById('dateInput').value = todayStr;
+    document.getElementById('dateInput').max = todayStr;
     loadRecords();
     renderAll();
   }
@@ -778,6 +791,7 @@
     const notes  = document.getElementById('notesInput').value.trim();
 
     if (!date)               { showToast('日付を入力してください'); return; }
+    if (date > fmtDateVal(new Date())) { showToast('⚠️ 未来の日付は記録できません'); return; }
     if (isNaN(weight)||weight<=0) { showToast('体重を入力してください'); return; }
 
     const prev = getPrevWeight(date);
