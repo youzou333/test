@@ -596,26 +596,25 @@
               <!-- Heavy drooping inner brows -->
               <path d="M62 78 Q76 85 90 78" stroke="#6a4020" stroke-width="5" fill="none" stroke-linecap="round"/>
               <path d="M110 78 Q124 85 138 78" stroke="#6a4020" stroke-width="5" fill="none" stroke-linecap="round"/>
-              <!-- Sad eyes – round and glistening -->
+              <!-- Sad eyes -->
               <circle cx="76" cy="91" r="14" fill="#2a1208"/>
               <circle cx="76" cy="91" r="11" fill="#3d2010"/>
               <circle cx="71" cy="86" r="5" fill="white"/>
               <circle cx="72" cy="87" r="2.5" fill="white" opacity="0.7"/>
-              <!-- Extra tear glimmer -->
               <ellipse cx="80" cy="99" rx="6" ry="4" fill="rgba(140,200,255,0.65)"/>
               <circle cx="124" cy="91" r="14" fill="#2a1208"/>
               <circle cx="124" cy="91" r="11" fill="#3d2010"/>
               <circle cx="119" cy="86" r="5" fill="white"/>
               <circle cx="120" cy="87" r="2.5" fill="white" opacity="0.7"/>
               <ellipse cx="128" cy="99" rx="6" ry="4" fill="rgba(140,200,255,0.65)"/>
-              <!-- Tear streams on face -->
+              <!-- Tear streams -->
               <path d="M74 104 Q71 118 69 132" stroke="#80c0f0" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
               <path d="M126 104 Q129 118 131 132" stroke="#80c0f0" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.9"/>
             </g>
 
             <!-- === MOUTH: three states === -->
 
-            <!-- Default mouth (slightly open, tongue visible) -->
+            <!-- Default mouth -->
             <g id="mouth-default">
               <path d="M84 122 Q100 130 116 122" stroke="#2a1208" stroke-width="2.5" fill="none" stroke-linecap="round"/>
               <ellipse cx="100" cy="135" rx="14" ry="10" fill="#d85070"/>
@@ -624,7 +623,7 @@
               <ellipse cx="96" cy="129" rx="4" ry="5" fill="rgba(255,255,255,0.18)"/>
             </g>
 
-            <!-- Happy mouth (big open smile, tongue way out) -->
+            <!-- Happy mouth -->
             <g id="mouth-happy" display="none">
               <path d="M80 120 Q100 136 120 120" stroke="#2a1208" stroke-width="2.5" fill="rgba(80,20,20,0.6)"/>
               <ellipse cx="100" cy="140" rx="18" ry="14" fill="#d04868"/>
@@ -633,7 +632,7 @@
               <ellipse cx="95" cy="132" rx="5" ry="7" fill="rgba(255,255,255,0.22)"/>
             </g>
 
-            <!-- Sad mouth (tight frown, tongue in) -->
+            <!-- Sad mouth -->
             <g id="mouth-sad" display="none">
               <path d="M84 128 Q100 118 116 128" stroke="#2a1208" stroke-width="3.5" fill="none" stroke-linecap="round"/>
               <path d="M84 128 Q88 132 92 130" stroke="#2a1208" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
@@ -699,7 +698,6 @@
 
     <!-- ===== RIGHT COLUMN ===== -->
     <div class="right-top">
-      <!-- Comparison -->
       <div class="card">
         <div class="card-title">📊 比較</div>
         <div class="comparison-grid">
@@ -716,7 +714,6 @@
     </div>
 
     <div class="right-bottom">
-      <!-- Chart -->
       <div class="card">
         <div class="chart-header">
           <div class="card-title" style="margin-bottom:0;">📈 体重グラフ</div>
@@ -731,7 +728,6 @@
         </div>
       </div>
 
-      <!-- History -->
       <div class="card">
         <div class="card-title">📋 記録履歴</div>
         <div class="history-list" id="historyList">
@@ -740,8 +736,8 @@
       </div>
     </div>
 
-  </div><!-- /main-grid -->
-</div><!-- /page-wrapper -->
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -752,7 +748,6 @@
   let currentRange = 'week';
   let pugResetTimer = null;
 
-  /* ---- Init ---- */
   function init() {
     const todayStr = fmtDateVal(new Date());
     document.getElementById('dateInput').value = todayStr;
@@ -773,7 +768,6 @@
     return `${m}/${d}`;
   }
 
-  /* ---- Storage ---- */
   function loadRecords() {
     const raw = localStorage.getItem(STORAGE_KEY);
     records = raw ? JSON.parse(raw) : [];
@@ -783,7 +777,6 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }
 
-  /* ---- Save record ---- */
   function saveRecord() {
     const date   = document.getElementById('dateInput').value;
     const weight = parseFloat(document.getElementById('weightInput').value);
@@ -833,13 +826,10 @@
     return before.length ? before[before.length-1].weight : null;
   }
 
-  /* ---- Pug states ---- */
   function setPugState(state) {
-    // Eyes
     document.getElementById('eyes-default').setAttribute('display', state==='default'?'':'none');
     document.getElementById('eyes-happy').setAttribute('display',  state==='happy' ?'':'none');
     document.getElementById('eyes-sad').setAttribute('display',    state==='sad'   ?'':'none');
-    // Mouth
     document.getElementById('mouth-default').setAttribute('display', state==='default'?'':'none');
     document.getElementById('mouth-happy').setAttribute('display',  state==='happy' ?'':'none');
     document.getElementById('mouth-sad').setAttribute('display',    state==='sad'   ?'':'none');
@@ -849,7 +839,6 @@
     const svg = document.getElementById('pugSvg');
     const msg = document.getElementById('pugMessage');
 
-    // Clear any ongoing reset
     if (pugResetTimer) { clearTimeout(pugResetTimer); pugResetTimer = null; }
     svg.classList.remove('pug-bouncing','pug-sad-anim');
 
@@ -857,7 +846,6 @@
       setPugState('happy');
       msg.textContent = 'やったー！軽くなった！🎉';
       msg.style.color = '#388050';
-      // Trigger reflow then animate
       void svg.offsetWidth;
       svg.classList.add('pug-bouncing');
       spawnSparkles();
@@ -900,8 +888,6 @@
 
   function spawnTears() {
     const wrapper = document.getElementById('pugWrapper');
-    // Tear positions roughly under the eyes in the SVG coordinate space
-    // SVG is 180px wide, viewBox 200 wide → scale ≈ 0.9
     const scale = 180/200;
     const positions = [
       { x: 68*scale, y: 108*scale },
@@ -928,7 +914,6 @@
     setTimeout(() => el.remove(), 2000);
   }
 
-  /* ---- Render ---- */
   function renderAll() {
     renderComparison();
     renderChart();
@@ -946,7 +931,6 @@
     const latest = records[records.length-1];
     const lw = latest.weight;
 
-    // Day comparison
     if (records.length >= 2) {
       const diff = lw - records[records.length-2].weight;
       dayEl.textContent = fmtDiff(diff);
@@ -955,7 +939,6 @@
       dayEl.textContent = 'ー'; dayEl.className = 'comp-value';
     }
 
-    // Month comparison
     const d = new Date(latest.date);
     d.setDate(d.getDate()-30);
     const cutStr = fmtDateVal(d);
@@ -996,9 +979,18 @@
     const labels = filtered.map(r => fmtDateShort(r.date));
     const data   = filtered.map(r => r.weight);
 
+    // Y軸の範囲: データが1件 or 全部同値でも必ず幅を持たせる
+    const minW = data.length ? Math.min(...data) : 0;
+    const maxW = data.length ? Math.max(...data) : 1;
+    const pad  = Math.max((maxW - minW) * 0.3, 0.3);
+    const yMin = Math.max(0, parseFloat((minW - pad).toFixed(1)));
+    const yMax = parseFloat((maxW + pad).toFixed(1));
+
     if (chart) {
       chart.data.labels = labels;
       chart.data.datasets[0].data = data;
+      chart.options.scales.y.min = yMin;
+      chart.options.scales.y.max = yMax;
       chart.update('active');
       return;
     }
@@ -1041,7 +1033,12 @@
         },
         scales: {
           x: { grid:{color:'rgba(176,120,64,0.12)'}, ticks:{color:'#8a6840', font:{size:11}} },
-          y: { grid:{color:'rgba(176,120,64,0.12)'}, ticks:{color:'#8a6840', font:{size:11}, callback:v=>`${v.toFixed(1)}`} }
+          y: {
+            min: yMin,
+            max: yMax,
+            grid:{color:'rgba(176,120,64,0.12)'},
+            ticks:{color:'#8a6840', font:{size:11}, callback:v=>`${v.toFixed(1)}`}
+          }
         }
       }
     });
