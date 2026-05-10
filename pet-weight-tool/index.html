@@ -1,151 +1,24 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f7f2e8">
-    <title>うちの子 体重手帳</title>
-    <link rel="stylesheet" href="styles.css">
-  </head>
-  <body>
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">ペット用かんたん体重管理</p>
-        <h1>うちの子 体重手帳</h1>
-      </div>
-      <button class="icon-text secondary" id="printButton" type="button" aria-label="病院に見せるために印刷">
-        <span aria-hidden="true">⎙</span>
-        印刷
-      </button>
-    </header>
-
-    <main class="shell">
-      <section class="today-panel" aria-labelledby="todayTitle">
-        <div class="pet-card">
-          <div class="avatar" aria-hidden="true">🐾</div>
-          <div>
-            <label for="petName">ペットの名前</label>
-            <input id="petName" name="petName" autocomplete="off" value="コタロー">
-          </div>
-        </div>
-
-        <div class="status-row">
-          <div>
-            <p class="label">今日の体重</p>
-            <p class="big-number"><span id="currentWeight">--</span><span>kg</span></p>
-          </div>
-          <div class="status-pill" id="trendStatus">記録を入れると判定します</div>
-        </div>
-
-        <h2 id="todayTitle">今日の記録</h2>
-        <form id="recordForm" class="record-form">
-          <div class="form-grid">
-            <label>
-              日付
-              <input id="dateInput" name="date" type="date" required>
-            </label>
-            <label>
-              体重 kg
-              <input id="weightInput" name="weight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 5.40" required>
-            </label>
-            <label>
-              ごはん
-              <select id="mealInput" name="meal">
-                <option value="よく食べた">よく食べた</option>
-                <option value="いつも通り">いつも通り</option>
-                <option value="少なめ">少なめ</option>
-                <option value="食べない">食べない</option>
-              </select>
-            </label>
-            <label>
-              うんち
-              <select id="poopInput" name="poop">
-                <option value="普通">普通</option>
-                <option value="やわらかい">やわらかい</option>
-                <option value="かたい">かたい</option>
-                <option value="出ていない">出ていない</option>
-              </select>
-            </label>
-          </div>
-
-          <fieldset class="quick-checks">
-            <legend>今日あったこと</legend>
-            <label><input type="checkbox" name="care" value="散歩">散歩</label>
-            <label><input type="checkbox" name="care" value="薬">薬</label>
-            <label><input type="checkbox" name="care" value="病院">病院</label>
-            <label><input type="checkbox" name="care" value="元気なし">元気なし</label>
-          </fieldset>
-
-          <label>
-            メモ
-            <textarea id="memoInput" name="memo" rows="3" placeholder="例: 朝は少し残した。夕方は元気。"></textarea>
-          </label>
-
-          <button class="primary save-button" type="submit">今日の記録を保存</button>
-        </form>
-      </section>
-
-      <section class="insight-panel" aria-labelledby="insightTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">ひと目で確認</p>
-            <h2 id="insightTitle">体重の変化</h2>
-          </div>
-          <button class="secondary" id="sampleButton" type="button">見本を入れる</button>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="weightChart" width="760" height="340" aria-label="体重推移グラフ" role="img"></canvas>
-        </div>
-        <div class="summary-grid">
-          <div>
-            <p class="label">前回から</p>
-            <strong id="deltaWeight">--</strong>
-          </div>
-          <div>
-            <p class="label">7日平均</p>
-            <strong id="averageWeight">--</strong>
-          </div>
-          <div>
-            <p class="label">記録日数</p>
-            <strong id="recordCount">0日</strong>
-          </div>
-        </div>
-        <div class="notice" id="careAdvice">体重、ごはん、うんちをまとめて残すと、病院で説明しやすくなります。</div>
-      </section>
-
-      <section class="tools-panel" aria-label="便利な操作">
-        <button class="tool-button" id="reminderButton" type="button">
-          <span aria-hidden="true">⏰</span>
-          毎日19時に記録
-        </button>
-        <button class="tool-button" id="exportButton" type="button">
-          <span aria-hidden="true">↓</span>
-          家族・病院用に出力
-        </button>
-        <label class="tool-button file-tool">
-          <span aria-hidden="true">↑</span>
-          記録を読み込み
-          <input id="importInput" type="file" accept="application/json">
-        </label>
-        <button class="tool-button danger" id="clearButton" type="button">
-          <span aria-hidden="true">×</span>
-          記録を消す
-        </button>
-      </section>
-
-      <section class="history-panel" aria-labelledby="historyTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">あとから見返す</p>
-            <h2 id="historyTitle">最近の記録</h2>
-          </div>
-        </div>
-        <div id="historyList" class="history-list"></div>
-      </section>
-    </main>
-
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <script src="app.js"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>うちの子 体重手帳</title>
+<style>
+:root{--bg:#f7f2e8;--paper:#fffdf8;--ink:#26231d;--muted:#6f675c;--line:#ddd1c0;--accent:#1f7a6d;--accent2:#10594f;--warm:#e8793e;--warn:#a94425;--ok:#e6f4ed;--warnbg:#fff0df;--shadow:0 20px 45px rgba(62,45,28,.12)}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;font-size:18px;line-height:1.6}button,input,select,textarea{font:inherit}button,label,select,input[type=checkbox]{cursor:pointer}h1,h2,p{margin:0}h1{font-size:clamp(28px,4vw,46px);line-height:1.12}h2{font-size:clamp(24px,3vw,34px);line-height:1.2}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px clamp(18px,4vw,52px);background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.eyebrow,.label{color:var(--muted);font-size:.86rem;font-weight:700}.shell{display:grid;grid-template-columns:minmax(320px,1fr) minmax(360px,1.12fr);grid-template-areas:"today insight" "tools insight" "history history";gap:22px;width:min(1180px,calc(100% - 32px));margin:24px auto 48px}.today-panel,.insight-panel,.tools-panel,.history-panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}.today-panel{grid-area:today;padding:clamp(18px,3vw,30px)}.insight-panel{grid-area:insight;padding:clamp(18px,3vw,30px)}.tools-panel{grid-area:tools;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px}.history-panel{grid-area:history;padding:clamp(18px,3vw,30px)}.pet-card,.status-row,.section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.pet-card{justify-content:flex-start;margin-bottom:24px}.photo-area{display:grid;justify-items:center;gap:10px;flex:0 0 auto}.avatar{display:grid;place-items:center;width:112px;height:112px;border-radius:50%;background:#f3d9c5 center/cover no-repeat;border:4px solid #fff;box-shadow:0 8px 22px rgba(62,45,28,.14);font-size:44px;overflow:hidden}.avatar.has-photo{color:transparent}.photo-button{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:.9rem;text-align:center}.photo-button input,.file-tool input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}label,legend{display:grid;gap:7px;color:var(--muted);font-size:.92rem;font-weight:700}input,select,textarea{width:100%;min-height:54px;border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);padding:12px 14px}textarea{resize:vertical}input:focus,select:focus,textarea:focus,button:focus-visible{outline:4px solid rgba(31,122,109,.25);outline-offset:2px}.big-number{display:flex;align-items:baseline;gap:6px;font-size:clamp(46px,8vw,78px);font-weight:800;letter-spacing:0;line-height:1}.big-number span:last-child{font-size:.42em}.status-pill{max-width:230px;padding:12px 14px;border-radius:999px;background:var(--warnbg);color:var(--warn);font-weight:800;text-align:center}.status-pill.good{background:var(--ok);color:var(--accent2)}.record-form{display:grid;gap:18px;margin-top:18px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.quick-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:14px;border:2px solid var(--line);border-radius:8px}.quick-checks legend{padding:0 8px}.quick-checks label{display:flex;align-items:center;min-height:54px;padding:10px;border-radius:8px;background:#f8f1e7;color:var(--ink)}.quick-checks input{width:24px;min-height:24px;margin-right:10px;accent-color:var(--accent)}button,.tool-button{min-height:56px;border:0;border-radius:8px;font-weight:800}.primary{background:var(--accent);color:#fff}.primary:hover{background:var(--accent2)}.secondary{border:2px solid var(--line);background:#fff;color:var(--ink);padding:10px 16px}.icon-text{display:inline-flex;align-items:center;justify-content:center;gap:8px}.save-button{font-size:1.15rem}.chart-wrap{min-height:280px;margin-top:18px;padding:12px;border:2px solid var(--line);border-radius:8px;background:#fff}canvas{display:block;width:100%;height:auto}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:16px 0}.summary-grid div{min-height:88px;padding:14px;border-radius:8px;background:#f8f1e7}.summary-grid strong{display:block;margin-top:4px;font-size:1.35rem}.notice{padding:14px 16px;border-left:6px solid var(--warm);border-radius:8px;background:var(--warnbg);font-weight:700}.tool-button{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border:2px solid var(--line);background:#fff;color:var(--ink);text-align:center}.danger{color:var(--warn)}.history-list{display:grid;gap:12px;margin-top:18px}.history-item{display:grid;grid-template-columns:120px 1fr auto;gap:14px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:8px;background:#fff}.history-item strong{font-size:1.25rem}.history-meta{color:var(--muted);font-size:.92rem}.delete-record{width:48px;min-height:48px;border:2px solid #f0c4b2;background:#fff6f1;color:var(--warn)}.toast{position:fixed;right:18px;bottom:18px;max-width:min(420px,calc(100% - 36px));padding:14px 18px;border-radius:8px;background:var(--accent2);color:#fff;box-shadow:var(--shadow);transform:translateY(120%);transition:transform .18s ease;z-index:10}.toast.show{transform:translateY(0)}@media(max-width:860px){body{font-size:17px}.topbar{position:static;align-items:flex-start}.shell{grid-template-columns:1fr;grid-template-areas:"today" "insight" "tools" "history";width:min(100% - 22px,680px);margin-top:12px}.status-row,.section-heading{flex-direction:column}.status-pill{max-width:100%}.history-item{grid-template-columns:1fr auto}.history-item time{grid-column:1/-1}}@media(max-width:560px){.topbar,.pet-card{flex-direction:column}.pet-card{align-items:center}.pet-card>div:last-child{width:100%}.form-grid,.tools-panel,.summary-grid,.quick-checks{grid-template-columns:1fr}}@media print{.topbar button,.tools-panel,.record-form,.delete-record{display:none}body{background:#fff}.shell{display:block;width:100%;margin:0}.today-panel,.insight-panel,.history-panel{margin-bottom:14px;box-shadow:none}}
+</style>
+</head>
+<body>
+<header class="topbar"><div><p class="eyebrow">ペット用かんたん体重管理</p><h1>うちの子 体重手帳</h1></div><button class="icon-text secondary" id="printButton" type="button" aria-label="病院に見せるために印刷"><span aria-hidden="true">⎙</span>印刷</button></header>
+<main class="shell">
+<section class="today-panel" aria-labelledby="todayTitle"><div class="pet-card"><div class="photo-area"><div class="avatar" id="petPhotoPreview" aria-label="愛犬の写真">🐾</div><label class="photo-button">写真を追加<input id="photoInput" type="file" accept="image/*"></label></div><div><label for="petName">ペットの名前</label><input id="petName" name="petName" autocomplete="off" value="コタロー"></div></div><div class="status-row"><div><p class="label">今日の体重</p><p class="big-number"><span id="currentWeight">--</span><span>kg</span></p></div><div class="status-pill" id="trendStatus">記録を入れると判定します</div></div><h2 id="todayTitle">今日の記録</h2><form id="recordForm" class="record-form"><div class="form-grid"><label>日付<input id="dateInput" name="date" type="date" required></label><label>体重 kg<input id="weightInput" name="weight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 5.40" required></label><label>ごはん<select id="mealInput" name="meal"><option value="よく食べた">よく食べた</option><option value="いつも通り">いつも通り</option><option value="少なめ">少なめ</option><option value="食べない">食べない</option></select></label><label>うんち<select id="poopInput" name="poop"><option value="普通">普通</option><option value="やわらかい">やわらかい</option><option value="かたい">かたい</option><option value="出ていない">出ていない</option></select></label></div><fieldset class="quick-checks"><legend>今日あったこと</legend><label><input type="checkbox" name="care" value="散歩">散歩</label><label><input type="checkbox" name="care" value="薬">薬</label><label><input type="checkbox" name="care" value="病院">病院</label><label><input type="checkbox" name="care" value="元気なし">元気なし</label></fieldset><label>メモ<textarea id="memoInput" name="memo" rows="3" placeholder="例: 朝は少し残した。夕方は元気。"></textarea></label><button class="primary save-button" type="submit">今日の記録を保存</button></form></section>
+<section class="insight-panel" aria-labelledby="insightTitle"><div class="section-heading"><div><p class="eyebrow">ひと目で確認</p><h2 id="insightTitle">体重の変化</h2></div><button class="secondary" id="sampleButton" type="button">見本を入れる</button></div><div class="chart-wrap"><canvas id="weightChart" width="760" height="340" aria-label="体重推移グラフ" role="img"></canvas></div><div class="summary-grid"><div><p class="label">前回から</p><strong id="deltaWeight">--</strong></div><div><p class="label">7日平均</p><strong id="averageWeight">--</strong></div><div><p class="label">記録日数</p><strong id="recordCount">0日</strong></div></div><div class="notice" id="careAdvice">体重、ごはん、うんちをまとめて残すと、病院で説明しやすくなります。</div></section>
+<section class="tools-panel" aria-label="便利な操作"><button class="tool-button" id="reminderButton" type="button"><span aria-hidden="true">⏰</span>毎日19時に記録</button><button class="tool-button" id="exportButton" type="button"><span aria-hidden="true">↓</span>家族・病院用に出力</button><label class="tool-button file-tool"><span aria-hidden="true">↑</span>記録を読み込み<input id="importInput" type="file" accept="application/json"></label><button class="tool-button danger" id="clearButton" type="button"><span aria-hidden="true">×</span>記録を消す</button></section>
+<section class="history-panel" aria-labelledby="historyTitle"><div class="section-heading"><div><p class="eyebrow">あとから見返す</p><h2 id="historyTitle">最近の記録</h2></div></div><div id="historyList" class="history-list"></div></section>
+</main><div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const storeKey="petWeightNotebook:v2";const state={petName:"コタロー",petPhoto:"",records:[]};const $=s=>document.querySelector(s);const els={form:$("#recordForm"),petPhotoPreview:$("#petPhotoPreview"),photoInput:$("#photoInput"),petName:$("#petName"),date:$("#dateInput"),weight:$("#weightInput"),meal:$("#mealInput"),poop:$("#poopInput"),memo:$("#memoInput"),currentWeight:$("#currentWeight"),trendStatus:$("#trendStatus"),chart:$("#weightChart"),deltaWeight:$("#deltaWeight"),averageWeight:$("#averageWeight"),recordCount:$("#recordCount"),careAdvice:$("#careAdvice"),historyList:$("#historyList"),sampleButton:$("#sampleButton"),reminderButton:$("#reminderButton"),exportButton:$("#exportButton"),importInput:$("#importInput"),clearButton:$("#clearButton"),printButton:$("#printButton"),toast:$("#toast")};function todayString(){return new Date().toISOString().slice(0,10)}function load(){const saved=localStorage.getItem(storeKey)||localStorage.getItem("petWeightNotebook:v1");if(!saved)return;try{const p=JSON.parse(saved);state.petName=p.petName||state.petName;state.petPhoto=p.petPhoto||"";state.records=Array.isArray(p.records)?p.records:[]}catch{showToast("保存データを読み込めませんでした。")}}function save(){localStorage.setItem(storeKey,JSON.stringify(state))}function sortRecords(r=state.records){return[...r].sort((a,b)=>a.date.localeCompare(b.date))}function latestRecords(){return sortRecords().reverse()}function formatDate(v){return new Intl.DateTimeFormat("ja-JP",{month:"long",day:"numeric",weekday:"short"}).format(new Date(v+"T00:00:00"))}function formatWeight(v){return Number(v).toFixed(2)}function careValues(fd){return fd.getAll("care")}function render(){els.petName.value=state.petName;renderPetPhoto();renderSummary();renderChart();renderHistory()}function renderPetPhoto(){if(state.petPhoto){els.petPhotoPreview.style.backgroundImage=`url("${state.petPhoto}")`;els.petPhotoPreview.classList.add("has-photo");els.petPhotoPreview.textContent=""}else{els.petPhotoPreview.style.backgroundImage="";els.petPhotoPreview.classList.remove("has-photo");els.petPhotoPreview.textContent="🐾"}}function renderSummary(){const r=sortRecords(),latest=r.at(-1),prev=r.at(-2);els.currentWeight.textContent=latest?formatWeight(latest.weight):"--";els.recordCount.textContent=`${r.length}日`;if(!latest){els.deltaWeight.textContent="--";els.averageWeight.textContent="--";els.trendStatus.textContent="記録を入れると判定します";els.trendStatus.classList.remove("good");els.careAdvice.textContent="体重、ごはん、うんちをまとめて残すと、病院で説明しやすくなります。";return}if(prev){const d=latest.weight-prev.weight,rate=Math.abs(d)/prev.weight;els.deltaWeight.textContent=`${d>=0?"+":""}${d.toFixed(2)} kg`;if(rate>=.05){els.trendStatus.textContent="大きな変化があります";els.trendStatus.classList.remove("good");els.careAdvice.textContent="前回から5%以上変わっています。食欲やうんちの様子も一緒に確認しましょう。"}else{els.trendStatus.textContent="ゆるやかな変化です";els.trendStatus.classList.add("good");els.careAdvice.textContent="急な増減は見られません。いつもの記録を続けましょう。"}}else{els.deltaWeight.textContent="--";els.trendStatus.textContent="最初の記録ができました";els.trendStatus.classList.add("good");els.careAdvice.textContent="次回の体重を入れると、増えたか減ったかを自動で見ます。"}const week=r.slice(-7),avg=week.reduce((s,x)=>s+x.weight,0)/week.length;els.averageWeight.textContent=`${avg.toFixed(2)} kg`}function renderChart(){const c=els.chart,ctx=c.getContext("2d"),r=sortRecords().slice(-14),w=c.width,h=c.height,p={top:28,right:26,bottom:54,left:58};ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.strokeStyle="#eadfce";ctx.lineWidth=2;for(let i=0;i<5;i++){const y=p.top+((h-p.top-p.bottom)/4)*i;ctx.beginPath();ctx.moveTo(p.left,y);ctx.lineTo(w-p.right,y);ctx.stroke()}if(!r.length){ctx.fillStyle="#6f675c";ctx.font="700 26px sans-serif";ctx.textAlign="center";ctx.fillText("記録を保存するとグラフが出ます",w/2,h/2);return}const weights=r.map(x=>x.weight),min=Math.min(...weights),max=Math.max(...weights),range=Math.max(max-min,.4),yMin=min-range*.18,yMax=max+range*.18,plotW=w-p.left-p.right,plotH=h-p.top-p.bottom,pt=(x,i)=>({x:r.length===1?p.left+plotW/2:p.left+plotW/(r.length-1)*i,y:p.top+(1-(x.weight-yMin)/(yMax-yMin))*plotH});ctx.strokeStyle="#1f7a6d";ctx.lineWidth=5;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();r.forEach((x,i)=>{const q=pt(x,i);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.stroke();r.forEach((x,i)=>{const q=pt(x,i);ctx.fillStyle="#fff";ctx.strokeStyle="#1f7a6d";ctx.lineWidth=4;ctx.beginPath();ctx.arc(q.x,q.y,8,0,Math.PI*2);ctx.fill();ctx.stroke()});ctx.fillStyle="#6f675c";ctx.font="700 18px sans-serif";ctx.textAlign="left";ctx.fillText(`${yMax.toFixed(1)}kg`,8,p.top+6);ctx.fillText(`${yMin.toFixed(1)}kg`,8,h-p.bottom+6);ctx.textAlign="center";ctx.fillText(r[0].date.slice(5).replace("-","/"),p.left,h-18);ctx.fillText(r.at(-1).date.slice(5).replace("-","/"),w-p.right,h-18)}function renderHistory(){const r=latestRecords();if(!r.length){els.historyList.innerHTML='<p class="history-meta">まだ記録がありません。まずは今日の体重を入れてください。</p>';return}els.historyList.innerHTML=r.slice(0,12).map(x=>{const care=x.care.length?` / ${x.care.join("・")}`:"",memo=x.memo?` / ${esc(x.memo)}`:"";return `<article class="history-item"><time datetime="${x.date}">${formatDate(x.date)}</time><div><strong>${formatWeight(x.weight)} kg</strong><p class="history-meta">${esc(x.meal)} / うんち ${esc(x.poop)}${esc(care)}${memo}</p></div><button class="delete-record" type="button" data-date="${x.date}" aria-label="${formatDate(x.date)}の記録を削除">×</button></article>`}).join("")}function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}function showToast(m){els.toast.textContent=m;els.toast.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>els.toast.classList.remove("show"),2400)}function upsertRecord(x){const i=state.records.findIndex(r=>r.date===x.date);i>=0?state.records[i]=x:state.records.push(x)}function downloadJson(name,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}function resizePhoto(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>{const image=new Image();image.onload=()=>{const maxSize=700,scale=Math.min(1,maxSize/Math.max(image.width,image.height)),width=Math.round(image.width*scale),height=Math.round(image.height*scale),canvas=document.createElement("canvas");canvas.width=width;canvas.height=height;canvas.getContext("2d").drawImage(image,0,0,width,height);resolve(canvas.toDataURL("image/jpeg",.82))};image.onerror=reject;image.src=reader.result};reader.onerror=reject;reader.readAsDataURL(file)})}function requestReminder(){const m="毎日19時になったら、このページを開いて記録してください。スマホのカレンダーにも「うちの子 体重」と入れておくと安心です。";if(!("Notification" in window)){showToast(m);return}if(Notification.permission==="granted"){new Notification("うちの子 体重手帳",{body:"今日の体重を記録する時間です。"});showToast("通知の見本を出しました。");return}Notification.requestPermission().then(p=>{if(p==="granted")new Notification("うちの子 体重手帳",{body:"今日の体重を記録する時間です。"});showToast(m)})}function addSampleData(){const start=new Date();start.setDate(start.getDate()-8);[5.42,5.40,5.38,5.39,5.36,5.35,5.34,5.33,5.34].forEach((weight,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);upsertRecord({date:d.toISOString().slice(0,10),weight,meal:i===6?"少なめ":"いつも通り",poop:"普通",care:i%2===0?["散歩"]:[],memo:i===6?"暑くて少し残した":""})});save();render();showToast("見本の記録を入れました。")}
+els.form.addEventListener("submit",e=>{e.preventDefault();const fd=new FormData(els.form),weight=Number(fd.get("weight"));if(!Number.isFinite(weight)||weight<=0){showToast("体重を正しく入れてください。");return}state.petName=els.petName.value.trim()||"うちの子";upsertRecord({date:fd.get("date"),weight,meal:fd.get("meal"),poop:fd.get("poop"),care:careValues(fd),memo:fd.get("memo").trim()});save();render();els.memo.value="";els.form.querySelectorAll("input[type='checkbox']").forEach(i=>i.checked=false);showToast("今日の記録を保存しました。")});els.petName.addEventListener("change",()=>{state.petName=els.petName.value.trim()||"うちの子";save()});els.photoInput.addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!file.type.startsWith("image/")){showToast("写真ファイルを選んでください。");e.target.value="";return}try{state.petPhoto=await resizePhoto(file);save();renderPetPhoto();showToast("写真を追加しました。")}catch{showToast("写真を読み込めませんでした。")}finally{e.target.value=""}});els.historyList.addEventListener("click",e=>{const b=e.target.closest(".delete-record");if(!b)return;state.records=state.records.filter(r=>r.date!==b.dataset.date);save();render();showToast("記録を削除しました。")});els.sampleButton.addEventListener("click",addSampleData);els.reminderButton.addEventListener("click",requestReminder);els.printButton.addEventListener("click",()=>window.print());els.exportButton.addEventListener("click",()=>{downloadJson(`${state.petName||"pet"}-weight-records.json`,state);showToast("記録ファイルを作りました。")});els.importInput.addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const p=JSON.parse(await file.text());state.petName=p.petName||state.petName;state.petPhoto=p.petPhoto||state.petPhoto;state.records=Array.isArray(p.records)?p.records:state.records;save();render();showToast("記録を読み込みました。")}catch{showToast("読み込みできませんでした。")}finally{e.target.value=""}});els.clearButton.addEventListener("click",()=>{if(!confirm("保存した記録をすべて消します。よろしいですか？"))return;state.records=[];save();render();showToast("記録を消しました。")});load();els.date.value=todayString();render();
+</script>
+</body>
 </html>
