@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f2e8">
+    <title>うちの子 体重手帳</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ペット用かんたん体重管理</p>
+        <h1>うちの子 体重手帳</h1>
+      </div>
+      <button class="icon-text secondary" id="printButton" type="button" aria-label="病院に見せるために印刷">
+        <span aria-hidden="true">⎙</span>
+        印刷
+      </button>
+    </header>
+
+    <main class="shell">
+      <section class="today-panel" aria-labelledby="todayTitle">
+        <div class="pet-card">
+          <div class="avatar" aria-hidden="true">🐾</div>
+          <div>
+            <label for="petName">ペットの名前</label>
+            <input id="petName" name="petName" autocomplete="off" value="コタロー">
+          </div>
+        </div>
+
+        <div class="status-row">
+          <div>
+            <p class="label">今日の体重</p>
+            <p class="big-number"><span id="currentWeight">--</span><span>kg</span></p>
+          </div>
+          <div class="status-pill" id="trendStatus">記録を入れると判定します</div>
+        </div>
+
+        <h2 id="todayTitle">今日の記録</h2>
+        <form id="recordForm" class="record-form">
+          <div class="form-grid">
+            <label>
+              日付
+              <input id="dateInput" name="date" type="date" required>
+            </label>
+            <label>
+              体重 kg
+              <input id="weightInput" name="weight" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例 5.40" required>
+            </label>
+            <label>
+              ごはん
+              <select id="mealInput" name="meal">
+                <option value="よく食べた">よく食べた</option>
+                <option value="いつも通り">いつも通り</option>
+                <option value="少なめ">少なめ</option>
+                <option value="食べない">食べない</option>
+              </select>
+            </label>
+            <label>
+              うんち
+              <select id="poopInput" name="poop">
+                <option value="普通">普通</option>
+                <option value="やわらかい">やわらかい</option>
+                <option value="かたい">かたい</option>
+                <option value="出ていない">出ていない</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset class="quick-checks">
+            <legend>今日あったこと</legend>
+            <label><input type="checkbox" name="care" value="散歩">散歩</label>
+            <label><input type="checkbox" name="care" value="薬">薬</label>
+            <label><input type="checkbox" name="care" value="病院">病院</label>
+            <label><input type="checkbox" name="care" value="元気なし">元気なし</label>
+          </fieldset>
+
+          <label>
+            メモ
+            <textarea id="memoInput" name="memo" rows="3" placeholder="例: 朝は少し残した。夕方は元気。"></textarea>
+          </label>
+
+          <button class="primary save-button" type="submit">今日の記録を保存</button>
+        </form>
+      </section>
+
+      <section class="insight-panel" aria-labelledby="insightTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ひと目で確認</p>
+            <h2 id="insightTitle">体重の変化</h2>
+          </div>
+          <button class="secondary" id="sampleButton" type="button">見本を入れる</button>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="weightChart" width="760" height="340" aria-label="体重推移グラフ" role="img"></canvas>
+        </div>
+        <div class="summary-grid">
+          <div>
+            <p class="label">前回から</p>
+            <strong id="deltaWeight">--</strong>
+          </div>
+          <div>
+            <p class="label">7日平均</p>
+            <strong id="averageWeight">--</strong>
+          </div>
+          <div>
+            <p class="label">記録日数</p>
+            <strong id="recordCount">0日</strong>
+          </div>
+        </div>
+        <div class="notice" id="careAdvice">体重、ごはん、うんちをまとめて残すと、病院で説明しやすくなります。</div>
+      </section>
+
+      <section class="tools-panel" aria-label="便利な操作">
+        <button class="tool-button" id="reminderButton" type="button">
+          <span aria-hidden="true">⏰</span>
+          毎日19時に記録
+        </button>
+        <button class="tool-button" id="exportButton" type="button">
+          <span aria-hidden="true">↓</span>
+          家族・病院用に出力
+        </button>
+        <label class="tool-button file-tool">
+          <span aria-hidden="true">↑</span>
+          記録を読み込み
+          <input id="importInput" type="file" accept="application/json">
+        </label>
+        <button class="tool-button danger" id="clearButton" type="button">
+          <span aria-hidden="true">×</span>
+          記録を消す
+        </button>
+      </section>
+
+      <section class="history-panel" aria-labelledby="historyTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">あとから見返す</p>
+            <h2 id="historyTitle">最近の記録</h2>
+          </div>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
