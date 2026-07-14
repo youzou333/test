@@ -3,1066 +3,922 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>わんこ体重管理</title>
+  <title>わんこ体重手帳</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F5F1EB;
+      --surface:   #FFFFFF;
+      --border:    #E4DDD4;
+      --border-s:  #EDE7DF;
+      --text:      #1C1814;
+      --text-m:    #5C5248;
+      --text-s:    #9C9088;
+      --accent:    #4B7855;
+      --accent-h:  #3A6044;
+      --accent-bg: #ECF4EE;
+      --accent-b:  rgba(75,120,85,.2);
+      --warn:      #B84030;
+      --warn-bg:   #FEF0EC;
+      --warn-b:    rgba(184,64,48,.2);
+      --r:         12px;
+      --r-lg:      18px;
+      --sh:        0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.06);
+      --sh-md:     0 2px 8px rgba(0,0,0,.07), 0 8px 24px rgba(0,0,0,.09);
+    }
 
     body {
-      font-family: 'Hiragino Kochi Pro', 'ヒラギノ角ゴ ProN', 'Hiragino Sans', 'メイリオ', sans-serif;
-      background: linear-gradient(135deg, #f5e6d3 0%, #ede0d0 50%, #e8d5c0 100%);
+      font-family: "Hiragino Kochi Pro","ヒラギノ角ゴ ProN W3","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      padding: 16px;
-      color: #4a3728;
-    }
-
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 20px;
-      padding: 16px 20px;
-      background: rgba(255,255,255,0.7);
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 20px rgba(139,90,60,0.1);
-    }
-
-    .header-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #f0d5b0, #e8c090);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 10px rgba(139,90,60,0.2);
-    }
-
-    .header h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #4a3728;
-      letter-spacing: 1px;
-    }
-
-    /* Pug character section */
-    .pug-section {
-      text-align: center;
-      margin-bottom: 20px;
-      padding: 20px;
-      background: rgba(255,255,255,0.75);
-      border-radius: 24px;
-      box-shadow: 0 4px 20px rgba(139,90,60,0.12);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .pug-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-
-    #pugSvg {
-      width: 160px;
-      height: 160px;
-      filter: drop-shadow(0 6px 15px rgba(0,0,0,0.15));
-      transition: transform 0.3s ease;
-    }
-
-    .pug-message {
-      margin-top: 10px;
       font-size: 15px;
-      font-weight: 600;
-      color: #7a5c42;
-      min-height: 24px;
-      transition: all 0.3s ease;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Sparkles */
-    .sparkle {
-      position: absolute;
-      pointer-events: none;
-      animation: sparkleAnim 1s ease-out forwards;
-      font-size: 20px;
+    /* ── HEADER ── */
+    .hd {
+      position: sticky; top: 0; z-index: 100;
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--sh);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px,4vw,48px);
+    }
+    .hd-brand { display: flex; align-items: center; gap: 11px; }
+    .hd-logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg,#F0E6D4,#E4D4B8);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    }
+    .hd-texts { display: flex; flex-direction: column; }
+    .hd-title { font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+    .hd-sub   { font-size: 10px; color: var(--text-s); font-weight: 600; letter-spacing: .5px; }
+    .hd-acts  { display: flex; gap: 6px; }
+    .btn-icon {
+      display: grid; place-items: center;
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer; font-size: 15px;
+      transition: all .15s ease;
+      color: var(--text-m);
+    }
+    .btn-icon:hover { background: var(--bg); border-color: var(--text-s); }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 1180px; margin: 0 auto;
+      padding: 22px clamp(14px,3vw,44px) 56px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      grid-template-areas: "left right" "hist hist";
+      gap: 18px;
+    }
+    .col-l { grid-area: left;  display: flex; flex-direction: column; gap: 16px; }
+    .col-r { grid-area: right; display: flex; flex-direction: column; gap: 16px; }
+    .col-h { grid-area: hist; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      box-shadow: var(--sh);
+    }
+    .ch {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .ct {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: var(--text);
+    }
+    .ct-icon {
+      width: 26px; height: 26px;
+      background: var(--accent-bg);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      font-size: 13px;
     }
 
-    @keyframes sparkleAnim {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-60px) scale(0.3); }
+    /* ── PUG CARD ── */
+    .pug-card { padding: 20px 22px 16px; text-align: center; }
+
+    .pet-row {
+      display: flex; align-items: center; gap: 12px;
+      padding-bottom: 16px; margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-s);
+    }
+    .pet-photo {
+      width: 46px; height: 46px; flex-shrink: 0;
+      border-radius: 11px;
+      background: linear-gradient(135deg,#F0E6D4,#E4D4B8);
+      border: 2px solid var(--border);
+      display: grid; place-items: center;
+      font-size: 22px; cursor: pointer; overflow: hidden;
+      position: relative; transition: all .15s;
+    }
+    .pet-photo:hover::after {
+      content: '📷';
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: grid; place-items: center;
+      font-size: 18px; border-radius: 9px;
+    }
+    .pet-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .pet-name {
+      flex: 1; border: none; outline: none;
+      font: 800 19px/1 inherit; color: var(--text);
+      background: transparent;
+    }
+    .pet-name::placeholder { color: var(--border); }
+
+    .pug-wrap { position: relative; display: inline-block; margin-bottom: 10px; }
+    #pugSvg {
+      width: 136px; height: 136px;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,.13));
+      transition: transform .3s;
+    }
+    .pug-msg {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-m); min-height: 20px;
+      transition: all .3s;
     }
 
-    /* Tear drop */
-    .tear {
-      position: absolute;
-      width: 8px;
-      height: 12px;
-      background: linear-gradient(to bottom, #87ceeb, #5ba8d4);
-      border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-      animation: tearFall 1s ease-in forwards;
+    /* ── FORM ── */
+    .fg { margin-bottom: 15px; }
+    .fl {
+      display: block; margin-bottom: 5px;
+      font-size: 11px; font-weight: 700;
+      color: var(--text-s); letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+    .fc {
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r); font-size: 15px;
+      color: var(--text); background: var(--surface);
+      outline: none; transition: all .15s; font-family: inherit;
+    }
+    .fc:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+    .wt-row { display: flex; align-items: center; gap: 7px; }
+    .wt-br  { font-size: 30px; color: var(--border); font-weight: 200; line-height: 1; transition: color .15s; }
+    .wt-row:focus-within .wt-br { color: var(--accent); }
+    .wt-in {
+      flex: 1; padding: 10px 6px;
+      border: 1.5px solid var(--border); border-radius: var(--r);
+      font: 800 26px/1 inherit; text-align: center;
+      color: var(--text); background: var(--surface);
+      outline: none; transition: all .15s;
+      font-variant-numeric: tabular-nums;
+    }
+    .wt-in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    .wt-unit { font-size: 15px; font-weight: 700; color: var(--text-s); }
+
+    .chips { display: flex; gap: 7px; }
+    .chip input { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-l {
+      display: flex; align-items: center; gap: 4px;
+      padding: 7px 13px;
+      border: 1.5px solid var(--border); border-radius: 20px;
+      font-size: 13px; font-weight: 600; color: var(--text-m);
+      cursor: pointer; background: var(--surface); transition: all .15s;
+    }
+    .chip-l:hover { border-color: var(--text-s); }
+    .chip input:checked + .chip-l {
+      border-color: var(--accent); background: var(--accent-bg);
+      color: var(--accent-h); box-shadow: 0 0 0 2px var(--accent-b);
     }
 
-    @keyframes tearFall {
-      0% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(50px); }
+    .btn-p {
+      width: 100%; padding: 13px;
+      background: var(--accent); color: white; border: none;
+      border-radius: var(--r); font: 700 15px/1 inherit;
+      letter-spacing: .4px; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(75,120,85,.35);
+      transition: all .15s;
     }
+    .btn-p:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(75,120,85,.4); }
+    .btn-p:active { transform: none; }
 
-    /* Bounce animation for happy */
+    /* ── STATS ── */
+    .stat-g { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .stat-b {
+      background: var(--bg); border: 1px solid var(--border-s);
+      border-radius: var(--r); padding: 13px 10px; text-align: center;
+    }
+    .stat-l { font-size: 10px; font-weight: 700; color: var(--text-s); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 5px; }
+    .stat-v { font-size: 18px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .stat-v.up   { color: var(--warn); }
+    .stat-v.down { color: var(--accent); }
+    .stat-v.same { color: var(--text-s); }
+
+    .trend {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+    }
+    .trend.up   { background: var(--warn-bg); color: var(--warn); }
+    .trend.down { background: var(--accent-bg); color: var(--accent-h); }
+    .trend.same { background: var(--bg); color: var(--text-s); }
+
+    .advice {
+      margin-top: 14px; padding: 11px 14px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-bg); border-radius: 0 var(--r) var(--r) 0;
+      font-size: 12px; color: var(--accent-h); font-weight: 600; line-height: 1.5;
+    }
+    .advice.warn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+
+    /* ── CHART ── */
+    .rtabs {
+      display: flex; gap: 3px;
+      background: var(--bg); border-radius: 8px; padding: 3px;
+    }
+    .rtab {
+      flex: 1; padding: 5px 9px; border: none; border-radius: 6px;
+      font: 600 12px/1 inherit; color: var(--text-s);
+      cursor: pointer; background: transparent; transition: all .15s;
+    }
+    .rtab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .ch-wrap { position: relative; height: 200px; margin-top: 12px; }
+
+    /* ── HISTORY ── */
+    .hist-g { display: grid; gap: 7px; }
+    .hist-it {
+      display: grid;
+      grid-template-columns: 94px 1fr auto auto auto;
+      align-items: center; gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-s); border-radius: var(--r);
+      background: var(--surface); transition: all .15s;
+    }
+    .hist-it:hover { border-color: var(--border); box-shadow: var(--sh); }
+    .hist-date { font-size: 12px; font-weight: 600; color: var(--text-m); }
+    .hist-meta { display: flex; flex-direction: column; gap: 1px; }
+    .hist-meal { font-size: 12px; color: var(--text-m); }
+    .hist-note { font-size: 11px; color: var(--text-s); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hist-kg   { font-size: 17px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hist-kg small { font-size: 11px; font-weight: 600; color: var(--text-s); }
+    .diff {
+      font-size: 11px; font-weight: 700; padding: 3px 7px;
+      border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
+    }
+    .diff.up   { background: var(--warn-bg); color: var(--warn); }
+    .diff.down { background: var(--accent-bg); color: var(--accent-h); }
+    .diff.same { background: var(--bg); color: var(--text-s); }
+    .diff.first{ background: var(--bg); color: var(--text-s); }
+    .btn-del {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border: 1px solid var(--border); border-radius: 7px;
+      background: var(--surface); color: var(--text-s);
+      cursor: pointer; font-size: 12px; transition: all .15s;
+    }
+    .btn-del:hover { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+
+    .empty { text-align: center; padding: 36px 20px; color: var(--text-s); }
+    .empty-ic { font-size: 36px; margin-bottom: 8px; }
+    .empty-tx { font-size: 13px; line-height: 1.7; }
+
+    /* ── ANIMATIONS ── */
     @keyframes pugBounce {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      25% { transform: translateY(-12px) rotate(-3deg); }
-      75% { transform: translateY(-8px) rotate(3deg); }
+      0%,100% { transform: translateY(0); }
+      30%  { transform: translateY(-13px) rotate(-4deg); }
+      65%  { transform: translateY(-7px)  rotate(4deg); }
     }
-
-    /* Shake animation for sad */
-    @keyframes pugShake {
-      0%, 100% { transform: rotate(0deg); }
+    @keyframes pugShiver {
+      0%,100% { transform: rotate(0); }
       20% { transform: rotate(-4deg); }
       40% { transform: rotate(4deg); }
       60% { transform: rotate(-3deg); }
       80% { transform: rotate(3deg); }
     }
+    @keyframes sparkle { 0% { opacity:1; transform:scale(1) translateY(0); } 100% { opacity:0; transform:scale(.3) translateY(-55px); } }
+    @keyframes tearFall { 0% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(38px); } }
 
-    .pug-happy { animation: pugBounce 0.8s ease-in-out 3; }
-    .pug-sad { animation: pugShake 0.5s ease-in-out 3; }
+    .pug-happy { animation: pugBounce .7s ease-in-out 3; }
+    .pug-sad   { animation: pugShiver .5s ease-in-out 4; }
+    .sp-el { position: absolute; pointer-events: none; animation: sparkle 1s ease-out forwards; font-size: 17px; }
+    .tr-el { position: absolute; width: 6px; height: 9px; background: linear-gradient(to bottom,#87CEEB,#5BA8D4); border-radius: 3px 3px 50% 50%; animation: tearFall .8s ease-in forwards; }
 
-    /* Card */
-    .card {
-      background: rgba(255,255,255,0.82);
-      border-radius: 24px;
-      padding: 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 20px rgba(139,90,60,0.1);
-      backdrop-filter: blur(8px);
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #4a3728;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Form elements */
-    .form-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 14px;
-      gap: 10px;
-    }
-
-    .form-label {
-      font-size: 15px;
-      font-weight: 600;
-      color: #6b4f3a;
-      min-width: 80px;
-    }
-
-    .form-input {
-      flex: 1;
-      padding: 10px 14px;
-      border: 2px solid #e8d5c0;
-      border-radius: 12px;
-      font-size: 15px;
-      color: #4a3728;
-      background: rgba(255,255,255,0.8);
-      outline: none;
-      transition: border-color 0.2s;
-      font-family: inherit;
-    }
-
-    .form-input:focus {
-      border-color: #c8956a;
-      box-shadow: 0 0 0 3px rgba(200,149,106,0.15);
-    }
-
-    /* Weight input with brackets */
-    .weight-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .bracket {
-      font-size: 28px;
-      color: #b08060;
-      font-weight: 300;
-      line-height: 1;
-    }
-
-    .weight-input {
-      flex: 1;
-      padding: 10px 8px;
-      border: 2px solid #e8d5c0;
-      border-radius: 12px;
-      font-size: 20px;
-      font-weight: 700;
-      text-align: center;
-      color: #4a3728;
-      background: rgba(255,255,255,0.8);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .weight-input:focus {
-      border-color: #c8956a;
-      box-shadow: 0 0 0 3px rgba(200,149,106,0.15);
-    }
-
-    .unit-label {
-      font-size: 16px;
-      font-weight: 600;
-      color: #7a5c42;
-    }
-
-    /* Meal status radio */
-    .meal-options {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .meal-option {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-    }
-
-    .meal-option input[type="radio"] {
-      display: none;
-    }
-
-    .meal-option-label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 7px 13px;
-      border: 2px solid #e8d5c0;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #7a5c42;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: rgba(255,255,255,0.5);
-    }
-
-    .meal-option input[type="radio"]:checked + .meal-option-label {
-      border-color: #c8956a;
-      background: linear-gradient(135deg, #f5dfc0, #eecfa0);
-      color: #5a3820;
-      box-shadow: 0 2px 8px rgba(200,149,106,0.3);
-    }
-
-    /* Notes */
-    .notes-textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border: 2px solid #e8d5c0;
-      border-radius: 14px;
-      font-size: 14px;
-      color: #4a3728;
-      background: rgba(255,255,255,0.8);
-      resize: vertical;
-      min-height: 80px;
-      outline: none;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-
-    .notes-textarea:focus {
-      border-color: #c8956a;
-      box-shadow: 0 0 0 3px rgba(200,149,106,0.15);
-    }
-
-    .notes-textarea::placeholder { color: #bba090; }
-
-    /* Submit button */
-    .submit-btn {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, #e07080, #c85060);
-      color: white;
-      border: none;
-      border-radius: 16px;
-      font-size: 17px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 2px;
-      box-shadow: 0 4px 15px rgba(200,80,96,0.35);
-      transition: all 0.2s;
-      margin-top: 6px;
-      font-family: inherit;
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(200,80,96,0.45);
-    }
-
-    .submit-btn:active {
-      transform: translateY(0);
-    }
-
-    /* Comparison section */
-    .comparison-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .comparison-box {
-      background: rgba(255,255,255,0.6);
-      border-radius: 16px;
-      padding: 16px;
-      text-align: center;
-      border: 2px solid rgba(200,149,106,0.2);
-    }
-
-    .comparison-box .comp-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #9a7a60;
-      margin-bottom: 8px;
-    }
-
-    .comparison-box .comp-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: #4a3728;
-    }
-
-    .comp-up { color: #d45060 !important; }
-    .comp-down { color: #50a870 !important; }
-    .comp-same { color: #9a7a60 !important; }
-
-    /* Chart */
-    .chart-container {
-      position: relative;
-      height: 200px;
-      margin-top: 8px;
-    }
-
-    /* History */
-    .history-list {
-      max-height: 280px;
-      overflow-y: auto;
-    }
-
-    .history-item {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(200,149,106,0.15);
-      gap: 10px;
-    }
-
-    .history-item:last-child { border-bottom: none; }
-
-    .history-date {
-      font-size: 12px;
-      color: #9a7a60;
-      min-width: 70px;
-    }
-
-    .history-weight {
-      font-size: 16px;
-      font-weight: 700;
-      color: #4a3728;
-      min-width: 60px;
-    }
-
-    .history-meal {
-      font-size: 12px;
-      flex: 1;
-    }
-
-    .history-note {
-      font-size: 11px;
-      color: #9a7a60;
-      max-width: 100px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .history-delete {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #dba090;
-      font-size: 16px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-
-    .history-delete:hover {
-      background: rgba(200,80,80,0.1);
-      color: #c05060;
-    }
-
-    /* Range selector */
-    .range-selector {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      justify-content: flex-end;
-    }
-
-    .range-btn {
-      padding: 5px 12px;
-      border: 2px solid #e8d5c0;
-      border-radius: 10px;
-      background: transparent;
-      font-size: 12px;
-      font-weight: 600;
-      color: #9a7a60;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .range-btn.active {
-      border-color: #c8956a;
-      background: linear-gradient(135deg, #f5dfc0, #eecfa0);
-      color: #5a3820;
-    }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      color: #bba090;
-      font-size: 14px;
-      padding: 20px;
-    }
-
-    /* Scroll bar */
-    .history-list::-webkit-scrollbar { width: 4px; }
-    .history-list::-webkit-scrollbar-track { background: transparent; }
-    .history-list::-webkit-scrollbar-thumb { background: #dcc5a8; border-radius: 2px; }
-
-    /* Toast */
+    /* ── TOAST ── */
     .toast {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-80px);
-      background: rgba(60,40,20,0.85);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
-      backdrop-filter: blur(10px);
-      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-      z-index: 1000;
-      white-space: nowrap;
+      position: fixed; bottom: 22px; left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--text); color: #fff;
+      padding: 11px 20px; border-radius: 30px;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      box-shadow: var(--sh-md); z-index: 999;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .wrap { grid-template-columns: 1fr; grid-template-areas: "left" "right" "hist"; }
+      .stat-g { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 560px) {
+      .hist-it { grid-template-columns: 1fr auto auto; }
+      .hist-it .hist-meta { display: none; }
     }
 
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
+    /* ── PRINT ── */
+    @media print {
+      .hd-acts, .btn-p, .btn-del, .chip { display: none; }
+      body { background: white; }
+      .card { box-shadow: none; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
 
-    <!-- Header -->
-    <div class="header">
-      <div class="header-icon">
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-          <!-- Body -->
-          <ellipse cx="22" cy="34" rx="12" ry="8" fill="#f0e0c8"/>
-          <!-- Head -->
-          <circle cx="22" cy="20" r="13" fill="#f5ead8"/>
-          <!-- Ears -->
-          <ellipse cx="11" cy="13" rx="5" ry="7" fill="#c8a070" transform="rotate(-15 11 13)"/>
-          <ellipse cx="33" cy="13" rx="5" ry="7" fill="#c8a070" transform="rotate(15 33 13)"/>
-          <!-- Face mask -->
-          <ellipse cx="22" cy="22" rx="9" ry="7" fill="#d4b88a" opacity="0.5"/>
-          <!-- Eyes -->
-          <circle cx="17" cy="19" r="3" fill="#2a1a0a"/>
-          <circle cx="27" cy="19" r="3" fill="#2a1a0a"/>
-          <circle cx="18" cy="18" r="1" fill="white"/>
-          <circle cx="28" cy="18" r="1" fill="white"/>
-          <!-- Nose -->
-          <ellipse cx="22" cy="23" rx="4" ry="2.5" fill="#3a2010"/>
-          <!-- Mouth -->
-          <path d="M18 26 Q22 30 26 26" stroke="#3a2010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <!-- Wrinkle -->
-          <path d="M17 14 Q22 12 27 14" stroke="#c8a070" stroke-width="1" fill="none" opacity="0.6"/>
-          <!-- Scale (body) -->
-          <rect x="10" y="38" width="24" height="5" rx="2" fill="#e8d5c0"/>
-          <rect x="14" y="40" width="16" height="1" rx="0.5" fill="#c8b0a0"/>
+<header class="hd">
+  <div class="hd-brand">
+    <div class="hd-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" fill="#F0DEC0"/>
+        <ellipse cx="7"  cy="8"  rx="3"   ry="4.2" fill="#C8A070" transform="rotate(-15 7 8)"/>
+        <ellipse cx="17" cy="8"  rx="3"   ry="4.2" fill="#C8A070" transform="rotate(15 17 8)"/>
+        <circle  cx="12" cy="12" r="6"    fill="#FBF0E0"/>
+        <circle  cx="9.5" cy="11"  r="2.2" fill="#2A1A0A"/>
+        <circle  cx="14.5" cy="11" r="2.2" fill="#2A1A0A"/>
+        <circle  cx="9"   cy="10.5" r=".9" fill="white"/>
+        <circle  cx="14"  cy="10.5" r=".9" fill="white"/>
+        <ellipse cx="12"  cy="14"  rx="2.8" ry="1.8" fill="#2A1208"/>
+        <path d="M9.5 16.5 Q12 18.5 14.5 16.5" stroke="#2A1208" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="hd-texts">
+      <div class="hd-title">わんこ体重手帳</div>
+      <div class="hd-sub">ペット健康記録</div>
+    </div>
+  </div>
+  <div class="hd-acts">
+    <button class="btn-icon" onclick="exportData()" title="JSONで書き出す">↓</button>
+    <button class="btn-icon" onclick="document.getElementById('imp').click()" title="読み込む">↑</button>
+    <button class="btn-icon" onclick="window.print()" title="印刷">⎙</button>
+    <input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- LEFT -->
+  <div class="col-l">
+
+    <!-- Pug + profile -->
+    <div class="card pug-card">
+      <div class="pet-row">
+        <div class="pet-photo" id="photoBox" onclick="document.getElementById('photoIn').click()">
+          🐾
+          <input type="file" id="photoIn" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+        </div>
+        <input class="pet-name" id="petName" placeholder="子の名前" value="" autocomplete="off">
+      </div>
+      <div class="pug-wrap" id="pugWrap">
+        <svg id="pugSvg" viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="100" cy="197" rx="42" ry="8" fill="rgba(0,0,0,.06)"/>
+          <ellipse cx="100" cy="162" rx="36" ry="26" fill="#F6EDD8"/>
+          <path d="M134 152 Q153 140 150 126 Q147 115 139 119 Q133 123 136 131" stroke="#D4B888" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="82"  cy="183" rx="10" ry="7" fill="#EDE0C8"/>
+          <ellipse cx="118" cy="183" rx="10" ry="7" fill="#EDE0C8"/>
+          <circle cx="100" cy="100" r="50" fill="#FBF2E4"/>
+          <!-- ears: wide horizontal floppy -->
+          <ellipse cx="55" cy="76" rx="22" ry="15" fill="#C8A878" transform="rotate(-18 55 76)"/>
+          <ellipse cx="145" cy="76" rx="22" ry="15" fill="#C8A878" transform="rotate(18 145 76)"/>
+          <ellipse cx="55" cy="76" rx="13" ry="9"  fill="#D8B890" opacity=".5" transform="rotate(-18 55 76)"/>
+          <ellipse cx="145" cy="76" rx="13" ry="9"  fill="#D8B890" opacity=".5" transform="rotate(18 145 76)"/>
+          <!-- wrinkles -->
+          <path d="M80 62 Q100 57 120 62" stroke="#DCC8A0" stroke-width="2"   fill="none" opacity=".6"/>
+          <path d="M84 55 Q100 51 116 55" stroke="#DCC8A0" stroke-width="1.5" fill="none" opacity=".4"/>
+          <ellipse cx="100" cy="107" rx="32" ry="25" fill="#ECD8B0" opacity=".38"/>
+          <!-- eyes default -->
+          <g id="eyes-d">
+            <circle cx="80"  cy="94" r="11" fill="#2A1A0A"/>
+            <circle cx="80"  cy="94" r="8.5" fill="#3C2810"/>
+            <circle cx="76"  cy="90" r="3"   fill="white"/>
+            <circle cx="77"  cy="91" r="1.5" fill="white" opacity=".7"/>
+            <circle cx="120" cy="94" r="11"  fill="#2A1A0A"/>
+            <circle cx="120" cy="94" r="8.5" fill="#3C2810"/>
+            <circle cx="116" cy="90" r="3"   fill="white"/>
+            <circle cx="117" cy="91" r="1.5" fill="white" opacity=".7"/>
+          </g>
+          <!-- eyes happy -->
+          <g id="eyes-h" display="none">
+            <path d="M69 94 Q80 84 91 94"  stroke="#2A1A0A" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M109 94 Q120 84 131 94" stroke="#2A1A0A" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- eyes sad -->
+          <g id="eyes-s" display="none">
+            <circle cx="80"  cy="96" r="11"  fill="#2A1A0A"/>
+            <circle cx="80"  cy="96" r="8.5" fill="#3C2810"/>
+            <circle cx="76"  cy="92" r="3"   fill="white"/>
+            <path d="M68 87 Q80 93 90 87"  stroke="#5A3020" stroke-width="2" fill="none" opacity=".5"/>
+            <circle cx="120" cy="96" r="11"  fill="#2A1A0A"/>
+            <circle cx="120" cy="96" r="8.5" fill="#3C2810"/>
+            <circle cx="116" cy="92" r="3"   fill="white"/>
+            <path d="M110 87 Q120 93 132 87" stroke="#5A3020" stroke-width="2" fill="none" opacity=".5"/>
+          </g>
+          <!-- cheeks -->
+          <ellipse cx="68"  cy="110" rx="8" ry="5.5" fill="#FFB0A0" opacity=".28"/>
+          <ellipse cx="132" cy="110" rx="8" ry="5.5" fill="#FFB0A0" opacity=".28"/>
+          <!-- nose -->
+          <ellipse cx="100" cy="114" rx="12" ry="8" fill="#2A1208"/>
+          <ellipse cx="96"  cy="112" rx="3.5" ry="2" fill="#3D2015" opacity=".5"/>
+          <ellipse cx="104" cy="112" rx="3.5" ry="2" fill="#3D2015" opacity=".5"/>
+          <ellipse cx="97"  cy="111" rx="2"   ry="1" fill="rgba(255,255,255,.2)"/>
+          <!-- mouth default -->
+          <g id="mouth-d">
+            <path d="M86 124 Q100 134 114 124" stroke="#2A1208" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- mouth happy -->
+          <g id="mouth-h" display="none">
+            <path d="M83 124 Q100 140 117 124" stroke="#2A1208" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M91 131 Q100 136 109 131" fill="#E87890" opacity=".6"/>
+          </g>
+          <!-- mouth sad -->
+          <g id="mouth-s" display="none">
+            <path d="M86 131 Q100 121 114 131" stroke="#2A1208" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- whiskers -->
+          <line x1="54"  y1="116" x2="82"  y2="119" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="51"  y1="122" x2="80"  y2="124" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="118" y1="119" x2="146" y2="116" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="120" y1="124" x2="149" y2="122" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <!-- tears -->
+          <g id="tears" display="none">
+            <ellipse cx="71"  cy="107" rx="3.5" ry="5" fill="#87CEEB" opacity=".9"/>
+            <ellipse cx="129" cy="107" rx="3.5" ry="5" fill="#87CEEB" opacity=".9"/>
+          </g>
         </svg>
       </div>
-      <h1>わんこ体重管理</h1>
+      <div class="pug-msg" id="pugMsg">体重を記録してね 🐾</div>
     </div>
 
-    <!-- Pug Character -->
-    <div class="pug-section">
-      <div class="pug-wrapper" id="pugWrapper">
-        <svg id="pugSvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <!-- Shadow -->
-          <ellipse cx="100" cy="185" rx="45" ry="10" fill="rgba(0,0,0,0.08)"/>
-          <!-- Body -->
-          <ellipse cx="100" cy="155" rx="38" ry="28" fill="#f5ead8"/>
-          <!-- Tail (curled) -->
-          <path d="M138 145 Q158 135 155 120 Q152 108 142 112 Q135 116 138 125" stroke="#d4b890" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <!-- Legs -->
-          <ellipse cx="78" cy="178" rx="11" ry="8" fill="#ede0c8"/>
-          <ellipse cx="122" cy="178" rx="11" ry="8" fill="#ede0c8"/>
-          <!-- Head -->
-          <circle cx="100" cy="95" r="52" fill="#f8f0e0"/>
-          <!-- Ears -->
-          <ellipse cx="58" cy="65" rx="18" ry="25" fill="#c8a878" transform="rotate(-15 58 65)"/>
-          <ellipse cx="142" cy="65" rx="18" ry="25" fill="#c8a878" transform="rotate(15 142 65)"/>
-          <ellipse cx="58" cy="65" rx="10" ry="16" fill="#d4b888" opacity="0.5" transform="rotate(-15 58 65)"/>
-          <ellipse cx="142" cy="65" rx="10" ry="16" fill="#d4b888" opacity="0.5" transform="rotate(15 142 65)"/>
-          <!-- Forehead wrinkles -->
-          <path d="M80 60 Q100 55 120 60" stroke="#dac8a0" stroke-width="2" fill="none" opacity="0.7"/>
-          <path d="M85 53 Q100 49 115 53" stroke="#dac8a0" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <!-- Face shadow/mask area -->
-          <ellipse cx="100" cy="103" rx="33" ry="27" fill="#e8d4b0" opacity="0.45"/>
-          <!-- Eyes - default open happy -->
-          <g id="eyeGroup">
-            <!-- Left eye -->
-            <circle cx="80" cy="92" r="12" fill="#2a1a0a"/>
-            <circle cx="80" cy="92" r="9" fill="#3d2810"/>
-            <circle cx="76" cy="88" r="3.5" fill="white"/>
-            <circle cx="77" cy="89" r="1.5" fill="white" opacity="0.7"/>
-            <!-- Right eye -->
-            <circle cx="120" cy="92" r="12" fill="#2a1a0a"/>
-            <circle cx="120" cy="92" r="9" fill="#3d2810"/>
-            <circle cx="116" cy="88" r="3.5" fill="white"/>
-            <circle cx="117" cy="89" r="1.5" fill="white" opacity="0.7"/>
-          </g>
-          <!-- Cheek blush -->
-          <ellipse cx="68" cy="108" rx="9" ry="6" fill="#ffb0a0" opacity="0.35"/>
-          <ellipse cx="132" cy="108" rx="9" ry="6" fill="#ffb0a0" opacity="0.35"/>
-          <!-- Nose -->
-          <ellipse cx="100" cy="112" rx="13" ry="9" fill="#2a1208"/>
-          <ellipse cx="96" cy="110" rx="4" ry="2.5" fill="#3d2015" opacity="0.5"/>
-          <ellipse cx="104" cy="110" rx="4" ry="2.5" fill="#3d2015" opacity="0.5"/>
-          <ellipse cx="97" cy="109" rx="2" ry="1.2" fill="rgba(255,255,255,0.2)"/>
-          <!-- Mouth - dynamic -->
-          <g id="mouthGroup">
-            <path id="mouthPath" d="M85 122 Q100 133 115 122" stroke="#2a1208" stroke-width="3" fill="none" stroke-linecap="round"/>
-            <path d="M93 128 Q100 132 107 128" fill="#e87890" opacity="0.6"/>
-          </g>
-          <!-- Whiskers -->
-          <line x1="55" y1="115" x2="82" y2="118" stroke="#c8b090" stroke-width="1.2" opacity="0.6"/>
-          <line x1="52" y1="120" x2="80" y2="122" stroke="#c8b090" stroke-width="1.2" opacity="0.6"/>
-          <line x1="118" y1="118" x2="145" y2="115" stroke="#c8b090" stroke-width="1.2" opacity="0.6"/>
-          <line x1="120" y1="122" x2="148" y2="120" stroke="#c8b090" stroke-width="1.2" opacity="0.6"/>
-          <!-- Tear drops (hidden by default) -->
-          <g id="tearGroup" opacity="0">
-            <ellipse cx="72" cy="104" rx="4" ry="6" fill="#87ceeb" opacity="0.8"/>
-            <ellipse cx="128" cy="104" rx="4" ry="6" fill="#87ceeb" opacity="0.8"/>
-          </g>
-        </svg>
-      </div>
-      <div class="pug-message" id="pugMessage">体重を記録してね！🐾</div>
-    </div>
-
-    <!-- Input Form -->
+    <!-- Form -->
     <div class="card">
-      <div class="card-title">📝 記録する</div>
-
-      <div class="form-row">
-        <span class="form-label">年月日</span>
-        <input type="date" id="dateInput" class="form-input">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📝</div>今日の記録</div>
       </div>
 
-      <div class="form-row">
-        <span class="form-label">体重</span>
-        <div class="weight-wrapper">
-          <span class="bracket">[</span>
-          <input type="number" id="weightInput" class="weight-input" step="0.01" min="0" max="99" placeholder="0.0">
-          <span class="bracket">]</span>
-          <span class="unit-label">kg</span>
+      <div class="fg">
+        <label class="fl">日付</label>
+        <input type="date" id="dateIn" class="fc">
+      </div>
+
+      <div class="fg">
+        <label class="fl">体重</label>
+        <div class="wt-row">
+          <span class="wt-br">[</span>
+          <input type="number" id="wtIn" class="wt-in" step="0.01" min="0" max="99" placeholder="0.00">
+          <span class="wt-br">]</span>
+          <span class="wt-unit">kg</span>
         </div>
       </div>
 
-      <div class="form-row" style="align-items:flex-start; flex-wrap:wrap; gap:8px;">
-        <span class="form-label" style="padding-top:4px;">食事の状態</span>
-        <div class="meal-options">
-          <label class="meal-option">
-            <input type="radio" name="meal" value="良好" checked>
-            <span class="meal-option-label">😊 良好</span>
-          </label>
-          <label class="meal-option">
-            <input type="radio" name="meal" value="普通">
-            <span class="meal-option-label">😐 普通</span>
-          </label>
-          <label class="meal-option">
-            <input type="radio" name="meal" value="食欲なし">
-            <span class="meal-option-label">😕 食欲なし</span>
-          </label>
+      <div class="fg">
+        <label class="fl">食事の状態</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="meal" value="良好" checked><span class="chip-l">😊 良好</span></label>
+          <label class="chip"><input type="radio" name="meal" value="普通"><span class="chip-l">😐 普通</span></label>
+          <label class="chip"><input type="radio" name="meal" value="食欲なし"><span class="chip-l">😕 食欲なし</span></label>
         </div>
       </div>
 
-      <div style="margin-bottom:14px;">
-        <div class="form-label" style="margin-bottom:6px;">備考欄</div>
-        <textarea id="notesInput" class="notes-textarea" placeholder="ここに記入..."></textarea>
+      <div class="fg">
+        <label class="fl">備考</label>
+        <textarea id="noteIn" class="fc" rows="2" placeholder="気になったこと、変化など…" style="resize:vertical;min-height:68px;"></textarea>
       </div>
 
-      <button class="submit-btn" onclick="saveRecord()">記録する</button>
-    </div>
-
-    <!-- Comparison -->
-    <div class="card">
-      <div class="card-title">📊 比較</div>
-      <div class="comparison-grid">
-        <div class="comparison-box">
-          <div class="comp-label">前日比</div>
-          <div class="comp-value" id="dayComp">ー</div>
-        </div>
-        <div class="comparison-box">
-          <div class="comp-label">前月比</div>
-          <div class="comp-value" id="monthComp">ー</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chart -->
-    <div class="card">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-        <div class="card-title" style="margin-bottom:0;">📈 体重グラフ</div>
-        <div class="range-selector">
-          <button class="range-btn active" onclick="setRange('week', this)">1週間</button>
-          <button class="range-btn" onclick="setRange('month', this)">1ヶ月</button>
-          <button class="range-btn" onclick="setRange('all', this)">全期間</button>
-        </div>
-      </div>
-      <div class="chart-container">
-        <canvas id="weightChart"></canvas>
-      </div>
-    </div>
-
-    <!-- History -->
-    <div class="card">
-      <div class="card-title">📋 記録履歴</div>
-      <div class="history-list" id="historyList">
-        <div class="empty-state">まだ記録がありません</div>
-      </div>
+      <button class="btn-p" onclick="saveRecord()">記録する</button>
     </div>
 
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- RIGHT -->
+  <div class="col-r">
 
-  <script>
-    const STORAGE_KEY = 'wanko_weight_records';
-    let records = [];
-    let chart = null;
-    let currentRange = 'week';
+    <!-- Stats -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📊</div>ステータス</div>
+        <div class="trend same" id="trendBadge">記録待ち</div>
+      </div>
+      <div class="stat-g">
+        <div class="stat-b"><div class="stat-l">現在の体重</div><div class="stat-v" id="curW">—</div></div>
+        <div class="stat-b"><div class="stat-l">前日比</div><div class="stat-v" id="dayC">—</div></div>
+        <div class="stat-b"><div class="stat-l">前月比</div><div class="stat-v" id="monC">—</div></div>
+      </div>
+      <div class="advice" id="advice">体重・食事・備考をまとめて記録すると、獣医師への説明がスムーズになります。</div>
+    </div>
 
-    // Init
-    function init() {
-      const today = new Date();
-      document.getElementById('dateInput').value = formatDateValue(today);
-      loadRecords();
-      renderAll();
+    <!-- Chart -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📈</div>体重グラフ</div>
+        <div class="rtabs">
+          <button class="rtab active" onclick="setRange('week',this)">1週間</button>
+          <button class="rtab" onclick="setRange('month',this)">1ヶ月</button>
+          <button class="rtab" onclick="setRange('all',this)">全期間</button>
+        </div>
+      </div>
+      <div class="ch-wrap"><canvas id="wChart"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- HISTORY full-width -->
+  <div class="col-h card">
+    <div class="ch">
+      <div class="ct"><div class="ct-icon">📋</div>記録履歴</div>
+      <span id="recCnt" style="font-size:11px;color:var(--text-s);font-weight:700;"></span>
+    </div>
+    <div id="histList" class="hist-g">
+      <div class="empty"><div class="empty-ic">🐾</div><div class="empty-tx">まだ記録がありません<br>最初の体重を入力してください</div></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'wanko_weight_v2';
+let recs = [], chart = null, range = 'week';
+
+function init() {
+  document.getElementById('dateIn').value = toDay();
+  loadRecs(); loadProfile(); renderAll();
+}
+
+function toDay() { return new Date().toISOString().split('T')[0]; }
+function fmtD(s) { const[,m,d]=s.split('-'); return `${m}/${d}`; }
+function fmtDLong(s) {
+  return new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(new Date(s+'T00:00:00'));
+}
+
+function loadRecs() {
+  try {
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('wanko_weight_records');
+    recs = raw ? JSON.parse(raw) : [];
+    recs.sort((a,b) => a.date.localeCompare(b.date));
+  } catch(e) { recs = []; }
+}
+function saveRecs() { localStorage.setItem(KEY, JSON.stringify(recs)); }
+
+function loadProfile() {
+  try {
+    const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+    if (p.name)  document.getElementById('petName').value = p.name;
+    if (p.photo) setPhoto(p.photo);
+  } catch(e) {}
+}
+function saveProfile() {
+  const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+  p.name = document.getElementById('petName').value;
+  localStorage.setItem('wanko_profile', JSON.stringify(p));
+}
+document.getElementById('petName').addEventListener('input', saveProfile);
+
+function handlePhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    setPhoto(ev.target.result);
+    const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+    p.photo = ev.target.result;
+    localStorage.setItem('wanko_profile', JSON.stringify(p));
+    toast('写真を設定しました');
+  };
+  reader.readAsDataURL(f);
+}
+function setPhoto(src) {
+  const box = document.getElementById('photoBox');
+  box.innerHTML = `<img src="${src}" alt="pet"><input type="file" id="photoIn" accept="image/*" style="display:none" onchange="handlePhoto(event)">`;
+}
+
+function saveRecord() {
+  const date   = document.getElementById('dateIn').value;
+  const weight = parseFloat(document.getElementById('wtIn').value);
+  const meal   = document.querySelector('input[name="meal"]:checked').value;
+  const notes  = document.getElementById('noteIn').value.trim();
+
+  if (!date)                        { toast('日付を入力してください'); return; }
+  if (isNaN(weight) || weight <= 0) { toast('体重を入力してください'); return; }
+
+  const prev = getPrev(date);
+  const idx  = recs.findIndex(r => r.date === date);
+  const rec  = { date, weight, meal, notes };
+
+  if (idx >= 0) { recs[idx] = rec; toast('記録を更新しました'); }
+  else { recs.push(rec); recs.sort((a,b) => a.date.localeCompare(b.date)); toast('記録しました！'); }
+
+  saveRecs(); saveProfile();
+  pugReact(prev === null ? 'neutral' : weight < prev ? 'happy' : weight > prev ? 'sad' : 'neutral');
+  document.getElementById('noteIn').value = '';
+  renderAll();
+}
+
+function deleteRecord(date) {
+  if (!confirm(`${fmtDLong(date)} の記録を削除しますか？`)) return;
+  recs = recs.filter(r => r.date !== date);
+  saveRecs(); renderAll(); toast('削除しました');
+}
+
+function getPrev(date) {
+  const before = recs.filter(r => r.date < date);
+  return before.length ? before[before.length-1].weight : null;
+}
+
+function renderAll() { renderStats(); renderChart(); renderHist(); }
+
+function renderStats() {
+  const curW  = document.getElementById('curW');
+  const dayC  = document.getElementById('dayC');
+  const monC  = document.getElementById('monC');
+  const badge = document.getElementById('trendBadge');
+  const adv   = document.getElementById('advice');
+
+  if (!recs.length) {
+    curW.textContent = '—'; curW.className = 'stat-v';
+    dayC.textContent = '—'; dayC.className = 'stat-v';
+    monC.textContent = '—'; monC.className = 'stat-v';
+    badge.textContent = '記録待ち'; badge.className = 'trend same';
+    adv.textContent = '体重・食事・備考をまとめて記録すると、獣医師への説明がスムーズになります。';
+    adv.className = 'advice'; return;
+  }
+
+  const last = recs[recs.length-1];
+  curW.textContent = last.weight.toFixed(2) + ' kg'; curW.className = 'stat-v';
+
+  if (recs.length >= 2) {
+    const prev = recs[recs.length-2].weight;
+    const diff = last.weight - prev;
+    const rate = Math.abs(diff) / prev;
+    setDiff(dayC, diff);
+    if (diff > 0) {
+      badge.textContent = '↑ 増加傾向'; badge.className = 'trend up';
+      adv.className = rate >= .05 ? 'advice warn' : 'advice';
+      adv.textContent = rate >= .05
+        ? '⚠️ 前回から5%以上増加しています。食欲・活動量もあわせてご確認ください。'
+        : '前回より少し増えています。食事量や運動量を見直してみましょう。';
+    } else if (diff < 0) {
+      badge.textContent = '↓ 減少傾向'; badge.className = 'trend down';
+      adv.className = rate >= .05 ? 'advice warn' : 'advice';
+      adv.textContent = rate >= .05
+        ? '⚠️ 前回から5%以上減少しています。急激な減量は体調変化のサインかもしれません。'
+        : '前回よりも少し減っています。この調子で記録を続けましょう！';
+    } else {
+      badge.textContent = '→ 変化なし'; badge.className = 'trend same';
+      adv.className = 'advice';
+      adv.textContent = '前回と変わりありません。引き続き記録を続けてください。';
     }
+  } else {
+    dayC.textContent = '—'; dayC.className = 'stat-v';
+    badge.textContent = '初回記録'; badge.className = 'trend same';
+    adv.className = 'advice';
+    adv.textContent = '最初の記録ができました！次回も記録して変化を追いましょう。';
+  }
 
-    function formatDateValue(d) {
-      return d.toISOString().split('T')[0];
-    }
+  const d30 = new Date(last.date); d30.setDate(d30.getDate() - 30);
+  const mRecs = recs.filter(r => r.date <= d30.toISOString().split('T')[0]);
+  if (mRecs.length) { setDiff(monC, last.weight - mRecs[mRecs.length-1].weight); }
+  else { monC.textContent = '—'; monC.className = 'stat-v'; }
+}
 
-    function formatDateDisplay(str) {
-      const [y, m, d] = str.split('-');
-      return `${y}年${m}月${d}日`;
-    }
+function setDiff(el, diff) {
+  const s = diff > 0 ? '+' : '';
+  el.textContent = `${s}${diff.toFixed(2)} kg`;
+  el.className = 'stat-v ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'same');
+}
 
-    function loadRecords() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      records = raw ? JSON.parse(raw) : [];
-      records.sort((a, b) => a.date.localeCompare(b.date));
-    }
+function getFiltered() {
+  if (!recs.length) return [];
+  if (range === 'all') return recs;
+  const latest = new Date(recs[recs.length-1].date);
+  const cut = new Date(latest);
+  if (range === 'week') cut.setDate(cut.getDate() - 7);
+  else cut.setDate(cut.getDate() - 30);
+  const cs = cut.toISOString().split('T')[0];
+  return recs.filter(r => r.date >= cs);
+}
 
-    function saveRecords() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
+function renderChart() {
+  const canvas = document.getElementById('wChart');
+  const ctx = canvas.getContext('2d');
+  const fil = getFiltered();
+  const labels = fil.map(r => fmtD(r.date));
+  const data   = fil.map(r => r.weight);
 
-    function saveRecord() {
-      const date = document.getElementById('dateInput').value;
-      const weight = parseFloat(document.getElementById('weightInput').value);
-      const meal = document.querySelector('input[name="meal"]:checked').value;
-      const notes = document.getElementById('notesInput').value.trim();
+  const minW = data.length ? Math.min(...data) : 0;
+  const maxW = data.length ? Math.max(...data) : 1;
+  const pad  = Math.max((maxW - minW) * .3, .3);
+  const yMin = Math.max(0, parseFloat((minW - pad).toFixed(1)));
+  const yMax = parseFloat((maxW + pad).toFixed(1));
 
-      if (!date) { showToast('日付を入力してください'); return; }
-      if (isNaN(weight) || weight <= 0) { showToast('体重を入力してください'); return; }
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.options.scales.y.min = yMin;
+    chart.options.scales.y.max = yMax;
+    chart.update('active'); return;
+  }
 
-      // Check if date already exists → update
-      const existing = records.findIndex(r => r.date === date);
-      const record = { date, weight, meal, notes };
+  const grad = ctx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, 'rgba(75,120,85,.22)');
+  grad.addColorStop(1, 'rgba(75,120,85,0)');
 
-      if (existing >= 0) {
-        records[existing] = record;
-        showToast('記録を更新しました！');
-      } else {
-        records.push(record);
-        records.sort((a, b) => a.date.localeCompare(b.date));
-        showToast('記録しました！');
-      }
-
-      saveRecords();
-
-      // Determine pug reaction
-      const prevWeight = getPrevDayWeight(date);
-      if (prevWeight !== null) {
-        if (weight > prevWeight) {
-          pugReact('sad');
-        } else if (weight < prevWeight) {
-          pugReact('happy');
-        } else {
-          pugReact('neutral');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      data, borderColor: '#4B7855', backgroundColor: grad,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#4B7855', pointBorderColor: 'white',
+      pointBorderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
+      fill: true, tension: .35
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1C1814', titleColor: '#E8DDD0',
+          bodyColor: 'white', padding: 11, cornerRadius: 10,
+          callbacks: { label: c => `体重: ${c.parsed.y.toFixed(2)} kg` }
         }
-      } else {
-        pugReact('neutral');
-      }
-
-      document.getElementById('notesInput').value = '';
-      renderAll();
-    }
-
-    function deleteRecord(date) {
-      if (!confirm(`${formatDateDisplay(date)} の記録を削除しますか？`)) return;
-      records = records.filter(r => r.date !== date);
-      saveRecords();
-      renderAll();
-      showToast('削除しました');
-    }
-
-    function getPrevDayWeight(date) {
-      const idx = records.findIndex(r => r.date === date);
-      if (idx > 0) return records[idx - 1].weight;
-      // Find the most recent before this date
-      const before = records.filter(r => r.date < date);
-      if (before.length > 0) return before[before.length - 1].weight;
-      return null;
-    }
-
-    function renderAll() {
-      renderComparison();
-      renderChart();
-      renderHistory();
-    }
-
-    function renderComparison() {
-      const dayEl = document.getElementById('dayComp');
-      const monthEl = document.getElementById('monthComp');
-
-      if (records.length === 0) {
-        dayEl.textContent = 'ー';
-        dayEl.className = 'comp-value';
-        monthEl.textContent = 'ー';
-        monthEl.className = 'comp-value';
-        return;
-      }
-
-      const latest = records[records.length - 1];
-      const latestWeight = latest.weight;
-
-      // Day comparison: previous record
-      if (records.length >= 2) {
-        const prev = records[records.length - 2].weight;
-        const diff = latestWeight - prev;
-        dayEl.textContent = formatDiff(diff);
-        dayEl.className = 'comp-value ' + diffClass(diff);
-      } else {
-        dayEl.textContent = 'ー';
-        dayEl.className = 'comp-value';
-      }
-
-      // Month comparison: record ~30 days ago
-      const latestDate = new Date(latest.date);
-      const monthAgo = new Date(latestDate);
-      monthAgo.setDate(monthAgo.getDate() - 30);
-      const monthAgoStr = formatDateValue(monthAgo);
-
-      // Find closest record at or before monthAgoStr
-      const monthRecs = records.filter(r => r.date <= monthAgoStr);
-      if (monthRecs.length > 0) {
-        const monthWeight = monthRecs[monthRecs.length - 1].weight;
-        const diff = latestWeight - monthWeight;
-        monthEl.textContent = formatDiff(diff);
-        monthEl.className = 'comp-value ' + diffClass(diff);
-      } else {
-        monthEl.textContent = 'ー';
-        monthEl.className = 'comp-value';
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#9C9088', font: { size: 11 } } },
+        y: { min: yMin, max: yMax, grid: { color: 'rgba(0,0,0,.05)' },
+             ticks: { color: '#9C9088', font: { size: 11 }, callback: v => v.toFixed(1) } }
       }
     }
+  });
+}
 
-    function formatDiff(diff) {
-      const sign = diff > 0 ? '+' : diff < 0 ? '' : '±';
-      const arrow = diff > 0 ? ' ↑' : diff < 0 ? ' ↓' : '';
-      return `${sign}${diff.toFixed(2)} kg${arrow}`;
+function setRange(r, btn) {
+  range = r;
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (chart) { chart.destroy(); chart = null; }
+  renderChart();
+}
+
+function renderHist() {
+  const el  = document.getElementById('histList');
+  const cnt = document.getElementById('recCnt');
+  cnt.textContent = recs.length ? `全 ${recs.length} 件` : '';
+
+  if (!recs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-ic">🐾</div><div class="empty-tx">まだ記録がありません<br>最初の体重を入力してください</div></div>`;
+    return;
+  }
+
+  const sorted = [...recs].reverse();
+  el.innerHTML = sorted.map((r, i) => {
+    const prev = sorted[i+1];
+    let diffHtml = '';
+    if (prev) {
+      const d = r.weight - prev.weight;
+      const s = d > 0 ? '+' : '';
+      const c = d > 0 ? 'up' : d < 0 ? 'down' : 'same';
+      diffHtml = `<span class="diff ${c}">${s}${d.toFixed(2)}</span>`;
+    } else {
+      diffHtml = `<span class="diff first">初回</span>`;
     }
+    const mEmoji = r.meal === '良好' ? '😊' : r.meal === '普通' ? '😐' : '😕';
+    const noteH  = r.notes ? `<div class="hist-note" title="${r.notes}">📝 ${r.notes}</div>` : '';
+    return `<div class="hist-it">
+      <div class="hist-date">${fmtD(r.date)}</div>
+      <div class="hist-meta"><div class="hist-meal">${mEmoji} ${r.meal}</div>${noteH}</div>
+      <div class="hist-kg">${r.weight.toFixed(2)}<small> kg</small></div>
+      ${diffHtml}
+      <button class="btn-del" onclick="deleteRecord('${r.date}')" title="削除">✕</button>
+    </div>`;
+  }).join('');
+}
 
-    function diffClass(diff) {
-      if (diff > 0) return 'comp-up';
-      if (diff < 0) return 'comp-down';
-      return 'comp-same';
-    }
+// ── pug reactions ──────────────────────────────────
+let pugT = null;
+function pugReact(mood) {
+  if (pugT) clearTimeout(pugT);
+  const svg = document.getElementById('pugSvg');
+  const msg = document.getElementById('pugMsg');
+  const ed = document.getElementById('eyes-d');
+  const eh = document.getElementById('eyes-h');
+  const es = document.getElementById('eyes-s');
+  const md = document.getElementById('mouth-d');
+  const mh = document.getElementById('mouth-h');
+  const ms = document.getElementById('mouth-s');
+  const te = document.getElementById('tears');
 
-    function getFilteredRecords() {
-      if (records.length === 0) return [];
-      const latest = new Date(records[records.length - 1].date);
-      if (currentRange === 'all') return records;
+  svg.classList.remove('pug-happy','pug-sad');
+  [ed,eh,es,md,mh,ms,te].forEach(el => el.setAttribute('display','none'));
 
-      const cutoff = new Date(latest);
-      if (currentRange === 'week') cutoff.setDate(cutoff.getDate() - 7);
-      else if (currentRange === 'month') cutoff.setDate(cutoff.getDate() - 30);
+  if (mood === 'happy') {
+    eh.setAttribute('display',''); mh.setAttribute('display','');
+    svg.classList.add('pug-happy');
+    msg.textContent = 'やったー！軽くなった！🎉'; msg.style.color = 'var(--accent-h)';
+    spawnSparkles();
+    pugT = setTimeout(resetPug, 3500);
+  } else if (mood === 'sad') {
+    es.setAttribute('display',''); ms.setAttribute('display',''); te.setAttribute('display','');
+    svg.classList.add('pug-sad');
+    msg.textContent = 'うっ…増えちゃった…😢'; msg.style.color = 'var(--warn)';
+    spawnTears();
+    pugT = setTimeout(resetPug, 4000);
+  } else {
+    ed.setAttribute('display',''); md.setAttribute('display','');
+    msg.textContent = '記録したよ！🐾'; msg.style.color = 'var(--text-m)';
+    pugT = setTimeout(() => { msg.textContent = '体重を記録してね 🐾'; msg.style.color = 'var(--text-m)'; }, 2000);
+  }
+}
 
-      const cutoffStr = formatDateValue(cutoff);
-      return records.filter(r => r.date >= cutoffStr);
-    }
+function resetPug() {
+  document.getElementById('pugSvg').classList.remove('pug-happy','pug-sad');
+  document.getElementById('eyes-d').setAttribute('display','');
+  ['eyes-h','eyes-s','mouth-h','mouth-s','tears'].forEach(id => document.getElementById(id).setAttribute('display','none'));
+  document.getElementById('mouth-d').setAttribute('display','');
+  const msg = document.getElementById('pugMsg');
+  msg.textContent = '体重を記録してね 🐾'; msg.style.color = 'var(--text-m)';
+}
 
-    function renderChart() {
-      const canvas = document.getElementById('weightChart');
-      const ctx = canvas.getContext('2d');
+function spawnSparkles() {
+  const w = document.getElementById('pugWrap');
+  ['✨','⭐','🎉','💫','🌟','🎊'].forEach((em, i) => setTimeout(() => {
+    const el = document.createElement('span'); el.className = 'sp-el'; el.textContent = em;
+    el.style.left = (15 + Math.random()*105) + 'px';
+    el.style.top  = (28 + Math.random()*65) + 'px';
+    w.appendChild(el); setTimeout(() => el.remove(), 1000);
+  }, i * 110));
+}
 
-      const filtered = getFilteredRecords();
+function spawnTears() {
+  const w = document.getElementById('pugWrap');
+  for (let i = 0; i < 5; i++) setTimeout(() => {
+    [{l:54,t:86},{l:104,t:86}].forEach(pos => {
+      const el = document.createElement('div'); el.className = 'tr-el';
+      el.style.left = (pos.l + Math.random()*6-3) + 'px';
+      el.style.top  = pos.t + 'px';
+      w.appendChild(el); setTimeout(() => el.remove(), 800);
+    });
+  }, i * 340);
+}
 
-      const labels = filtered.map(r => {
-        const [y, m, d] = r.date.split('-');
-        return `${m}/${d}`;
-      });
-      const data = filtered.map(r => r.weight);
+// ── export / import ────────────────────────────────
+function exportData() {
+  const name = document.getElementById('petName').value || 'うちの子';
+  const blob = new Blob([JSON.stringify({ petName: name, records: recs, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `${name}-体重記録-${toDay()}.json` });
+  a.click(); URL.revokeObjectURL(url); toast('記録をエクスポートしました');
+}
 
-      if (chart) {
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = data;
-        chart.update('active');
-        return;
+function importData(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.petName) document.getElementById('petName').value = d.petName;
+      if (Array.isArray(d.records)) {
+        recs = d.records; recs.sort((a,b) => a.date.localeCompare(b.date));
+        saveRecs(); if (chart) { chart.destroy(); chart = null; }
+        renderAll(); toast('記録を読み込みました');
       }
+    } catch { toast('読み込みに失敗しました'); }
+    e.target.value = '';
+  };
+  reader.readAsText(f);
+}
 
-      const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-      gradient.addColorStop(0, 'rgba(192,100,80,0.3)');
-      gradient.addColorStop(1, 'rgba(192,100,80,0.0)');
+// ── toast ────────────────────────────────────────
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600);
+}
 
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            data,
-            borderColor: '#c86450',
-            backgroundColor: gradient,
-            borderWidth: 2.5,
-            pointBackgroundColor: '#c86450',
-            pointBorderColor: 'white',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            fill: true,
-            tension: 0.35,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(50,30,15,0.85)',
-              titleColor: '#f5dfc0',
-              bodyColor: 'white',
-              padding: 10,
-              cornerRadius: 10,
-              callbacks: {
-                label: ctx => `体重: ${ctx.parsed.y.toFixed(2)} kg`
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(200,160,120,0.15)' },
-              ticks: { color: '#9a7a60', font: { size: 11 } }
-            },
-            y: {
-              grid: { color: 'rgba(200,160,120,0.15)' },
-              ticks: {
-                color: '#9a7a60',
-                font: { size: 11 },
-                callback: v => `${v.toFixed(1)}`
-              }
-            }
-          }
-        }
-      });
-    }
-
-    function setRange(range, btn) {
-      currentRange = range;
-      document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderChart();
-    }
-
-    function renderHistory() {
-      const el = document.getElementById('historyList');
-      if (records.length === 0) {
-        el.innerHTML = '<div class="empty-state">まだ記録がありません</div>';
-        return;
-      }
-
-      const sorted = [...records].reverse();
-      el.innerHTML = sorted.map(r => {
-        const mealEmoji = r.meal === '良好' ? '😊' : r.meal === '普通' ? '😐' : '😕';
-        return `
-          <div class="history-item">
-            <span class="history-date">${formatDateDisplay(r.date)}</span>
-            <span class="history-weight">${r.weight.toFixed(2)} kg</span>
-            <span class="history-meal">${mealEmoji} ${r.meal}</span>
-            ${r.notes ? `<span class="history-note" title="${r.notes}">${r.notes}</span>` : '<span class="history-note"></span>'}
-            <button class="history-delete" onclick="deleteRecord('${r.date}')">✕</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // Pug reactions
-    function pugReact(mood) {
-      const svg = document.getElementById('pugSvg');
-      const wrapper = document.getElementById('pugWrapper');
-      const msg = document.getElementById('pugMessage');
-      const eyeGroup = document.getElementById('eyeGroup');
-      const mouthPath = document.getElementById('mouthPath');
-      const tearGroup = document.getElementById('tearGroup');
-
-      svg.classList.remove('pug-happy', 'pug-sad');
-      tearGroup.setAttribute('opacity', '0');
-
-      if (mood === 'happy') {
-        // Happy pug - big smile, bouncing eyes
-        eyeGroup.innerHTML = `
-          <path d="M70 92 Q80 84 90 92" stroke="#2a1a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <path d="M110 92 Q120 84 130 92" stroke="#2a1a0a" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <circle cx="76" cy="91" r="2" fill="#2a1a0a"/>
-          <circle cx="116" cy="91" r="2" fill="#2a1a0a"/>
-        `;
-        mouthPath.setAttribute('d', 'M82 122 Q100 138 118 122');
-        mouthPath.setAttribute('stroke-width', '3.5');
-        msg.textContent = 'やったー！軽くなった！🎉';
-        msg.style.color = '#50a870';
-        svg.classList.add('pug-happy');
-        spawnSparkles();
-        setTimeout(() => resetPug(), 3000);
-
-      } else if (mood === 'sad') {
-        // Sad pug - droopy eyes, frown, tears
-        eyeGroup.innerHTML = `
-          <circle cx="80" cy="94" r="12" fill="#2a1a0a"/>
-          <circle cx="80" cy="94" r="9" fill="#3d2810"/>
-          <circle cx="76" cy="90" r="3.5" fill="white"/>
-          <circle cx="77" cy="91" r="1.5" fill="white" opacity="0.7"/>
-          <circle cx="120" cy="94" r="12" fill="#2a1a0a"/>
-          <circle cx="120" cy="94" r="9" fill="#3d2810"/>
-          <circle cx="116" cy="90" r="3.5" fill="white"/>
-          <circle cx="117" cy="91" r="1.5" fill="white" opacity="0.7"/>
-          <path d="M68 85 Q80 90 90 85" stroke="#5a3020" stroke-width="2" fill="none" opacity="0.5"/>
-          <path d="M110 85 Q120 90 132 85" stroke="#5a3020" stroke-width="2" fill="none" opacity="0.5"/>
-        `;
-        mouthPath.setAttribute('d', 'M85 130 Q100 120 115 130');
-        mouthPath.setAttribute('stroke-width', '3');
-        tearGroup.setAttribute('opacity', '1');
-        msg.textContent = 'うっ…増えちゃった…😢';
-        msg.style.color = '#c05060';
-        svg.classList.add('pug-sad');
-        animateTears();
-        setTimeout(() => resetPug(), 3500);
-
-      } else {
-        // Neutral
-        resetPug();
-        msg.textContent = '記録したよ！🐾';
-        msg.style.color = '#7a5c42';
-        setTimeout(() => {
-          msg.textContent = '体重を記録してね！🐾';
-          msg.style.color = '#7a5c42';
-        }, 2000);
-      }
-    }
-
-    function resetPug() {
-      const eyeGroup = document.getElementById('eyeGroup');
-      const mouthPath = document.getElementById('mouthPath');
-      const tearGroup = document.getElementById('tearGroup');
-      const svg = document.getElementById('pugSvg');
-
-      svg.classList.remove('pug-happy', 'pug-sad');
-      tearGroup.setAttribute('opacity', '0');
-      mouthPath.setAttribute('d', 'M85 122 Q100 133 115 122');
-      mouthPath.setAttribute('stroke-width', '3');
-      eyeGroup.innerHTML = `
-        <circle cx="80" cy="92" r="12" fill="#2a1a0a"/>
-        <circle cx="80" cy="92" r="9" fill="#3d2810"/>
-        <circle cx="76" cy="88" r="3.5" fill="white"/>
-        <circle cx="77" cy="89" r="1.5" fill="white" opacity="0.7"/>
-        <circle cx="120" cy="92" r="12" fill="#2a1a0a"/>
-        <circle cx="120" cy="92" r="9" fill="#3d2810"/>
-        <circle cx="116" cy="88" r="3.5" fill="white"/>
-        <circle cx="117" cy="89" r="1.5" fill="white" opacity="0.7"/>
-      `;
-    }
-
-    function spawnSparkles() {
-      const wrapper = document.getElementById('pugWrapper');
-      const emojis = ['✨', '⭐', '🎉', '💫', '🌟'];
-      for (let i = 0; i < 6; i++) {
-        setTimeout(() => {
-          const s = document.createElement('span');
-          s.className = 'sparkle';
-          s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-          s.style.left = (20 + Math.random() * 120) + 'px';
-          s.style.top = (40 + Math.random() * 80) + 'px';
-          wrapper.appendChild(s);
-          setTimeout(() => s.remove(), 1000);
-        }, i * 120);
-      }
-    }
-
-    function animateTears() {
-      const wrapper = document.getElementById('pugWrapper');
-      const tearPositions = [{left: 58, top: 90}, {left: 108, top: 90}];
-      for (let i = 0; i < 4; i++) {
-        setTimeout(() => {
-          tearPositions.forEach(pos => {
-            const t = document.createElement('div');
-            t.className = 'tear';
-            t.style.left = (pos.left + (Math.random() * 6 - 3)) + 'px';
-            t.style.top = pos.top + 'px';
-            wrapper.appendChild(t);
-            setTimeout(() => t.remove(), 1000);
-          });
-        }, i * 400);
-      }
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2500);
-    }
-
-    // Run
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
