@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>わんこ体重手帳</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F5F1EB;
+      --surface:   #FFFFFF;
+      --border:    #E4DDD4;
+      --border-s:  #EDE7DF;
+      --text:      #1C1814;
+      --text-m:    #5C5248;
+      --text-s:    #9C9088;
+      --accent:    #4B7855;
+      --accent-h:  #3A6044;
+      --accent-bg: #ECF4EE;
+      --accent-b:  rgba(75,120,85,.2);
+      --warn:      #B84030;
+      --warn-bg:   #FEF0EC;
+      --warn-b:    rgba(184,64,48,.2);
+      --r:         12px;
+      --r-lg:      18px;
+      --sh:        0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.06);
+      --sh-md:     0 2px 8px rgba(0,0,0,.07), 0 8px 24px rgba(0,0,0,.09);
+    }
+
+    body {
+      font-family: "Hiragino Kochi Pro","ヒラギノ角ゴ ProN W3","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ── */
+    .hd {
+      position: sticky; top: 0; z-index: 100;
+      height: 60px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--sh);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px,4vw,48px);
+    }
+    .hd-brand { display: flex; align-items: center; gap: 11px; }
+    .hd-logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg,#F0E6D4,#E4D4B8);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    }
+    .hd-texts { display: flex; flex-direction: column; }
+    .hd-title { font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+    .hd-sub   { font-size: 10px; color: var(--text-s); font-weight: 600; letter-spacing: .5px; }
+    .hd-acts  { display: flex; gap: 6px; }
+    .btn-icon {
+      display: grid; place-items: center;
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      cursor: pointer; font-size: 15px;
+      transition: all .15s ease;
+      color: var(--text-m);
+    }
+    .btn-icon:hover { background: var(--bg); border-color: var(--text-s); }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 1180px; margin: 0 auto;
+      padding: 22px clamp(14px,3vw,44px) 56px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      grid-template-areas: "left right" "hist hist";
+      gap: 18px;
+    }
+    .col-l { grid-area: left;  display: flex; flex-direction: column; gap: 16px; }
+    .col-r { grid-area: right; display: flex; flex-direction: column; gap: 16px; }
+    .col-h { grid-area: hist; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      box-shadow: var(--sh);
+    }
+    .ch {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .ct {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: var(--text);
+    }
+    .ct-icon {
+      width: 26px; height: 26px;
+      background: var(--accent-bg);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      font-size: 13px;
+    }
+
+    /* ── PUG CARD ── */
+    .pug-card { padding: 20px 22px 16px; text-align: center; }
+
+    .pet-row {
+      display: flex; align-items: center; gap: 12px;
+      padding-bottom: 16px; margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-s);
+    }
+    .pet-photo {
+      width: 46px; height: 46px; flex-shrink: 0;
+      border-radius: 11px;
+      background: linear-gradient(135deg,#F0E6D4,#E4D4B8);
+      border: 2px solid var(--border);
+      display: grid; place-items: center;
+      font-size: 22px; cursor: pointer; overflow: hidden;
+      position: relative; transition: all .15s;
+    }
+    .pet-photo:hover::after {
+      content: '📷';
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.45);
+      display: grid; place-items: center;
+      font-size: 18px; border-radius: 9px;
+    }
+    .pet-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .pet-name {
+      flex: 1; border: none; outline: none;
+      font: 800 19px/1 inherit; color: var(--text);
+      background: transparent;
+    }
+    .pet-name::placeholder { color: var(--border); }
+
+    .pug-wrap { position: relative; display: inline-block; margin-bottom: 10px; }
+    #pugSvg {
+      width: 136px; height: 136px;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,.13));
+      transition: transform .3s;
+    }
+    .pug-msg {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-m); min-height: 20px;
+      transition: all .3s;
+    }
+
+    /* ── FORM ── */
+    .fg { margin-bottom: 15px; }
+    .fl {
+      display: block; margin-bottom: 5px;
+      font-size: 11px; font-weight: 700;
+      color: var(--text-s); letter-spacing: .6px;
+      text-transform: uppercase;
+    }
+    .fc {
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r); font-size: 15px;
+      color: var(--text); background: var(--surface);
+      outline: none; transition: all .15s; font-family: inherit;
+    }
+    .fc:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+    .wt-row { display: flex; align-items: center; gap: 7px; }
+    .wt-br  { font-size: 30px; color: var(--border); font-weight: 200; line-height: 1; transition: color .15s; }
+    .wt-row:focus-within .wt-br { color: var(--accent); }
+    .wt-in {
+      flex: 1; padding: 10px 6px;
+      border: 1.5px solid var(--border); border-radius: var(--r);
+      font: 800 26px/1 inherit; text-align: center;
+      color: var(--text); background: var(--surface);
+      outline: none; transition: all .15s;
+      font-variant-numeric: tabular-nums;
+    }
+    .wt-in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    .wt-unit { font-size: 15px; font-weight: 700; color: var(--text-s); }
+
+    .chips { display: flex; gap: 7px; }
+    .chip input { position: absolute; opacity: 0; pointer-events: none; }
+    .chip-l {
+      display: flex; align-items: center; gap: 4px;
+      padding: 7px 13px;
+      border: 1.5px solid var(--border); border-radius: 20px;
+      font-size: 13px; font-weight: 600; color: var(--text-m);
+      cursor: pointer; background: var(--surface); transition: all .15s;
+    }
+    .chip-l:hover { border-color: var(--text-s); }
+    .chip input:checked + .chip-l {
+      border-color: var(--accent); background: var(--accent-bg);
+      color: var(--accent-h); box-shadow: 0 0 0 2px var(--accent-b);
+    }
+
+    .btn-p {
+      width: 100%; padding: 13px;
+      background: var(--accent); color: white; border: none;
+      border-radius: var(--r); font: 700 15px/1 inherit;
+      letter-spacing: .4px; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(75,120,85,.35);
+      transition: all .15s;
+    }
+    .btn-p:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(75,120,85,.4); }
+    .btn-p:active { transform: none; }
+
+    /* ── STATS ── */
+    .stat-g { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .stat-b {
+      background: var(--bg); border: 1px solid var(--border-s);
+      border-radius: var(--r); padding: 13px 10px; text-align: center;
+    }
+    .stat-l { font-size: 10px; font-weight: 700; color: var(--text-s); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 5px; }
+    .stat-v { font-size: 18px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .stat-v.up   { color: var(--warn); }
+    .stat-v.down { color: var(--accent); }
+    .stat-v.same { color: var(--text-s); }
+
+    .trend {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+    }
+    .trend.up   { background: var(--warn-bg); color: var(--warn); }
+    .trend.down { background: var(--accent-bg); color: var(--accent-h); }
+    .trend.same { background: var(--bg); color: var(--text-s); }
+
+    .advice {
+      margin-top: 14px; padding: 11px 14px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-bg); border-radius: 0 var(--r) var(--r) 0;
+      font-size: 12px; color: var(--accent-h); font-weight: 600; line-height: 1.5;
+    }
+    .advice.warn { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+
+    /* ── CHART ── */
+    .rtabs {
+      display: flex; gap: 3px;
+      background: var(--bg); border-radius: 8px; padding: 3px;
+    }
+    .rtab {
+      flex: 1; padding: 5px 9px; border: none; border-radius: 6px;
+      font: 600 12px/1 inherit; color: var(--text-s);
+      cursor: pointer; background: transparent; transition: all .15s;
+    }
+    .rtab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .ch-wrap { position: relative; height: 200px; margin-top: 12px; }
+
+    /* ── HISTORY ── */
+    .hist-g { display: grid; gap: 7px; }
+    .hist-it {
+      display: grid;
+      grid-template-columns: 94px 1fr auto auto auto;
+      align-items: center; gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-s); border-radius: var(--r);
+      background: var(--surface); transition: all .15s;
+    }
+    .hist-it:hover { border-color: var(--border); box-shadow: var(--sh); }
+    .hist-date { font-size: 12px; font-weight: 600; color: var(--text-m); }
+    .hist-meta { display: flex; flex-direction: column; gap: 1px; }
+    .hist-meal { font-size: 12px; color: var(--text-m); }
+    .hist-note { font-size: 11px; color: var(--text-s); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hist-kg   { font-size: 17px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hist-kg small { font-size: 11px; font-weight: 600; color: var(--text-s); }
+    .diff {
+      font-size: 11px; font-weight: 700; padding: 3px 7px;
+      border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
+    }
+    .diff.up   { background: var(--warn-bg); color: var(--warn); }
+    .diff.down { background: var(--accent-bg); color: var(--accent-h); }
+    .diff.same { background: var(--bg); color: var(--text-s); }
+    .diff.first{ background: var(--bg); color: var(--text-s); }
+    .btn-del {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border: 1px solid var(--border); border-radius: 7px;
+      background: var(--surface); color: var(--text-s);
+      cursor: pointer; font-size: 12px; transition: all .15s;
+    }
+    .btn-del:hover { border-color: var(--warn); background: var(--warn-bg); color: var(--warn); }
+
+    .empty { text-align: center; padding: 36px 20px; color: var(--text-s); }
+    .empty-ic { font-size: 36px; margin-bottom: 8px; }
+    .empty-tx { font-size: 13px; line-height: 1.7; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pugBounce {
+      0%,100% { transform: translateY(0); }
+      30%  { transform: translateY(-13px) rotate(-4deg); }
+      65%  { transform: translateY(-7px)  rotate(4deg); }
+    }
+    @keyframes pugShiver {
+      0%,100% { transform: rotate(0); }
+      20% { transform: rotate(-4deg); }
+      40% { transform: rotate(4deg); }
+      60% { transform: rotate(-3deg); }
+      80% { transform: rotate(3deg); }
+    }
+    @keyframes sparkle { 0% { opacity:1; transform:scale(1) translateY(0); } 100% { opacity:0; transform:scale(.3) translateY(-55px); } }
+    @keyframes tearFall { 0% { opacity:1; transform:translateY(0); } 100% { opacity:0; transform:translateY(38px); } }
+
+    .pug-happy { animation: pugBounce .7s ease-in-out 3; }
+    .pug-sad   { animation: pugShiver .5s ease-in-out 4; }
+    .sp-el { position: absolute; pointer-events: none; animation: sparkle 1s ease-out forwards; font-size: 17px; }
+    .tr-el { position: absolute; width: 6px; height: 9px; background: linear-gradient(to bottom,#87CEEB,#5BA8D4); border-radius: 3px 3px 50% 50%; animation: tearFall .8s ease-in forwards; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 22px; left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: var(--text); color: #fff;
+      padding: 11px 20px; border-radius: 30px;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      box-shadow: var(--sh-md); z-index: 999;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      .wrap { grid-template-columns: 1fr; grid-template-areas: "left" "right" "hist"; }
+      .stat-g { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 560px) {
+      .hist-it { grid-template-columns: 1fr auto auto; }
+      .hist-it .hist-meta { display: none; }
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      .hd-acts, .btn-p, .btn-del, .chip { display: none; }
+      body { background: white; }
+      .card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-brand">
+    <div class="hd-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" fill="#F0DEC0"/>
+        <ellipse cx="7"  cy="8"  rx="3"   ry="4.2" fill="#C8A070" transform="rotate(-15 7 8)"/>
+        <ellipse cx="17" cy="8"  rx="3"   ry="4.2" fill="#C8A070" transform="rotate(15 17 8)"/>
+        <circle  cx="12" cy="12" r="6"    fill="#FBF0E0"/>
+        <circle  cx="9.5" cy="11"  r="2.2" fill="#2A1A0A"/>
+        <circle  cx="14.5" cy="11" r="2.2" fill="#2A1A0A"/>
+        <circle  cx="9"   cy="10.5" r=".9" fill="white"/>
+        <circle  cx="14"  cy="10.5" r=".9" fill="white"/>
+        <ellipse cx="12"  cy="14"  rx="2.8" ry="1.8" fill="#2A1208"/>
+        <path d="M9.5 16.5 Q12 18.5 14.5 16.5" stroke="#2A1208" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="hd-texts">
+      <div class="hd-title">わんこ体重手帳</div>
+      <div class="hd-sub">ペット健康記録</div>
+    </div>
+  </div>
+  <div class="hd-acts">
+    <button class="btn-icon" onclick="exportData()" title="JSONで書き出す">↓</button>
+    <button class="btn-icon" onclick="document.getElementById('imp').click()" title="読み込む">↑</button>
+    <button class="btn-icon" onclick="window.print()" title="印刷">⎙</button>
+    <input type="file" id="imp" accept="application/json" style="display:none" onchange="importData(event)">
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- LEFT -->
+  <div class="col-l">
+
+    <!-- Pug + profile -->
+    <div class="card pug-card">
+      <div class="pet-row">
+        <div class="pet-photo" id="photoBox" onclick="document.getElementById('photoIn').click()">
+          🐾
+          <input type="file" id="photoIn" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+        </div>
+        <input class="pet-name" id="petName" placeholder="子の名前" value="" autocomplete="off">
+      </div>
+      <div class="pug-wrap" id="pugWrap">
+        <svg id="pugSvg" viewBox="0 0 200 210" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="100" cy="197" rx="42" ry="8" fill="rgba(0,0,0,.06)"/>
+          <ellipse cx="100" cy="162" rx="36" ry="26" fill="#F6EDD8"/>
+          <path d="M134 152 Q153 140 150 126 Q147 115 139 119 Q133 123 136 131" stroke="#D4B888" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="82"  cy="183" rx="10" ry="7" fill="#EDE0C8"/>
+          <ellipse cx="118" cy="183" rx="10" ry="7" fill="#EDE0C8"/>
+          <circle cx="100" cy="100" r="50" fill="#FBF2E4"/>
+          <!-- ears: wide horizontal floppy -->
+          <ellipse cx="55" cy="76" rx="22" ry="15" fill="#C8A878" transform="rotate(-18 55 76)"/>
+          <ellipse cx="145" cy="76" rx="22" ry="15" fill="#C8A878" transform="rotate(18 145 76)"/>
+          <ellipse cx="55" cy="76" rx="13" ry="9"  fill="#D8B890" opacity=".5" transform="rotate(-18 55 76)"/>
+          <ellipse cx="145" cy="76" rx="13" ry="9"  fill="#D8B890" opacity=".5" transform="rotate(18 145 76)"/>
+          <!-- wrinkles -->
+          <path d="M80 62 Q100 57 120 62" stroke="#DCC8A0" stroke-width="2"   fill="none" opacity=".6"/>
+          <path d="M84 55 Q100 51 116 55" stroke="#DCC8A0" stroke-width="1.5" fill="none" opacity=".4"/>
+          <ellipse cx="100" cy="107" rx="32" ry="25" fill="#ECD8B0" opacity=".38"/>
+          <!-- eyes default -->
+          <g id="eyes-d">
+            <circle cx="80"  cy="94" r="11" fill="#2A1A0A"/>
+            <circle cx="80"  cy="94" r="8.5" fill="#3C2810"/>
+            <circle cx="76"  cy="90" r="3"   fill="white"/>
+            <circle cx="77"  cy="91" r="1.5" fill="white" opacity=".7"/>
+            <circle cx="120" cy="94" r="11"  fill="#2A1A0A"/>
+            <circle cx="120" cy="94" r="8.5" fill="#3C2810"/>
+            <circle cx="116" cy="90" r="3"   fill="white"/>
+            <circle cx="117" cy="91" r="1.5" fill="white" opacity=".7"/>
+          </g>
+          <!-- eyes happy -->
+          <g id="eyes-h" display="none">
+            <path d="M69 94 Q80 84 91 94"  stroke="#2A1A0A" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M109 94 Q120 84 131 94" stroke="#2A1A0A" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- eyes sad -->
+          <g id="eyes-s" display="none">
+            <circle cx="80"  cy="96" r="11"  fill="#2A1A0A"/>
+            <circle cx="80"  cy="96" r="8.5" fill="#3C2810"/>
+            <circle cx="76"  cy="92" r="3"   fill="white"/>
+            <path d="M68 87 Q80 93 90 87"  stroke="#5A3020" stroke-width="2" fill="none" opacity=".5"/>
+            <circle cx="120" cy="96" r="11"  fill="#2A1A0A"/>
+            <circle cx="120" cy="96" r="8.5" fill="#3C2810"/>
+            <circle cx="116" cy="92" r="3"   fill="white"/>
+            <path d="M110 87 Q120 93 132 87" stroke="#5A3020" stroke-width="2" fill="none" opacity=".5"/>
+          </g>
+          <!-- cheeks -->
+          <ellipse cx="68"  cy="110" rx="8" ry="5.5" fill="#FFB0A0" opacity=".28"/>
+          <ellipse cx="132" cy="110" rx="8" ry="5.5" fill="#FFB0A0" opacity=".28"/>
+          <!-- nose -->
+          <ellipse cx="100" cy="114" rx="12" ry="8" fill="#2A1208"/>
+          <ellipse cx="96"  cy="112" rx="3.5" ry="2" fill="#3D2015" opacity=".5"/>
+          <ellipse cx="104" cy="112" rx="3.5" ry="2" fill="#3D2015" opacity=".5"/>
+          <ellipse cx="97"  cy="111" rx="2"   ry="1" fill="rgba(255,255,255,.2)"/>
+          <!-- mouth default -->
+          <g id="mouth-d">
+            <path d="M86 124 Q100 134 114 124" stroke="#2A1208" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- mouth happy -->
+          <g id="mouth-h" display="none">
+            <path d="M83 124 Q100 140 117 124" stroke="#2A1208" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            <path d="M91 131 Q100 136 109 131" fill="#E87890" opacity=".6"/>
+          </g>
+          <!-- mouth sad -->
+          <g id="mouth-s" display="none">
+            <path d="M86 131 Q100 121 114 131" stroke="#2A1208" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- whiskers -->
+          <line x1="54"  y1="116" x2="82"  y2="119" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="51"  y1="122" x2="80"  y2="124" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="118" y1="119" x2="146" y2="116" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <line x1="120" y1="124" x2="149" y2="122" stroke="#C8B090" stroke-width="1.2" opacity=".5"/>
+          <!-- tears -->
+          <g id="tears" display="none">
+            <ellipse cx="71"  cy="107" rx="3.5" ry="5" fill="#87CEEB" opacity=".9"/>
+            <ellipse cx="129" cy="107" rx="3.5" ry="5" fill="#87CEEB" opacity=".9"/>
+          </g>
+        </svg>
+      </div>
+      <div class="pug-msg" id="pugMsg">体重を記録してね 🐾</div>
+    </div>
+
+    <!-- Form -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📝</div>今日の記録</div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">日付</label>
+        <input type="date" id="dateIn" class="fc">
+      </div>
+
+      <div class="fg">
+        <label class="fl">体重</label>
+        <div class="wt-row">
+          <span class="wt-br">[</span>
+          <input type="number" id="wtIn" class="wt-in" step="0.01" min="0" max="99" placeholder="0.00">
+          <span class="wt-br">]</span>
+          <span class="wt-unit">kg</span>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">食事の状態</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="meal" value="良好" checked><span class="chip-l">😊 良好</span></label>
+          <label class="chip"><input type="radio" name="meal" value="普通"><span class="chip-l">😐 普通</span></label>
+          <label class="chip"><input type="radio" name="meal" value="食欲なし"><span class="chip-l">😕 食欲なし</span></label>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">備考</label>
+        <textarea id="noteIn" class="fc" rows="2" placeholder="気になったこと、変化など…" style="resize:vertical;min-height:68px;"></textarea>
+      </div>
+
+      <button class="btn-p" onclick="saveRecord()">記録する</button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col-r">
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📊</div>ステータス</div>
+        <div class="trend same" id="trendBadge">記録待ち</div>
+      </div>
+      <div class="stat-g">
+        <div class="stat-b"><div class="stat-l">現在の体重</div><div class="stat-v" id="curW">—</div></div>
+        <div class="stat-b"><div class="stat-l">前日比</div><div class="stat-v" id="dayC">—</div></div>
+        <div class="stat-b"><div class="stat-l">前月比</div><div class="stat-v" id="monC">—</div></div>
+      </div>
+      <div class="advice" id="advice">体重・食事・備考をまとめて記録すると、獣医師への説明がスムーズになります。</div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct"><div class="ct-icon">📈</div>体重グラフ</div>
+        <div class="rtabs">
+          <button class="rtab active" onclick="setRange('week',this)">1週間</button>
+          <button class="rtab" onclick="setRange('month',this)">1ヶ月</button>
+          <button class="rtab" onclick="setRange('all',this)">全期間</button>
+        </div>
+      </div>
+      <div class="ch-wrap"><canvas id="wChart"></canvas></div>
+    </div>
+
+  </div>
+
+  <!-- HISTORY full-width -->
+  <div class="col-h card">
+    <div class="ch">
+      <div class="ct"><div class="ct-icon">📋</div>記録履歴</div>
+      <span id="recCnt" style="font-size:11px;color:var(--text-s);font-weight:700;"></span>
+    </div>
+    <div id="histList" class="hist-g">
+      <div class="empty"><div class="empty-ic">🐾</div><div class="empty-tx">まだ記録がありません<br>最初の体重を入力してください</div></div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'wanko_weight_v2';
+let recs = [], chart = null, range = 'week';
+
+function init() {
+  document.getElementById('dateIn').value = toDay();
+  loadRecs(); loadProfile(); renderAll();
+}
+
+function toDay() { return new Date().toISOString().split('T')[0]; }
+function fmtD(s) { const[,m,d]=s.split('-'); return `${m}/${d}`; }
+function fmtDLong(s) {
+  return new Intl.DateTimeFormat('ja-JP',{month:'long',day:'numeric',weekday:'short'}).format(new Date(s+'T00:00:00'));
+}
+
+function loadRecs() {
+  try {
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('wanko_weight_records');
+    recs = raw ? JSON.parse(raw) : [];
+    recs.sort((a,b) => a.date.localeCompare(b.date));
+  } catch(e) { recs = []; }
+}
+function saveRecs() { localStorage.setItem(KEY, JSON.stringify(recs)); }
+
+function loadProfile() {
+  try {
+    const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+    if (p.name)  document.getElementById('petName').value = p.name;
+    if (p.photo) setPhoto(p.photo);
+  } catch(e) {}
+}
+function saveProfile() {
+  const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+  p.name = document.getElementById('petName').value;
+  localStorage.setItem('wanko_profile', JSON.stringify(p));
+}
+document.getElementById('petName').addEventListener('input', saveProfile);
+
+function handlePhoto(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    setPhoto(ev.target.result);
+    const p = JSON.parse(localStorage.getItem('wanko_profile') || '{}');
+    p.photo = ev.target.result;
+    localStorage.setItem('wanko_profile', JSON.stringify(p));
+    toast('写真を設定しました');
+  };
+  reader.readAsDataURL(f);
+}
+function setPhoto(src) {
+  const box = document.getElementById('photoBox');
+  box.innerHTML = `<img src="${src}" alt="pet"><input type="file" id="photoIn" accept="image/*" style="display:none" onchange="handlePhoto(event)">`;
+}
+
+function saveRecord() {
+  const date   = document.getElementById('dateIn').value;
+  const weight = parseFloat(document.getElementById('wtIn').value);
+  const meal   = document.querySelector('input[name="meal"]:checked').value;
+  const notes  = document.getElementById('noteIn').value.trim();
+
+  if (!date)                        { toast('日付を入力してください'); return; }
+  if (isNaN(weight) || weight <= 0) { toast('体重を入力してください'); return; }
+
+  const prev = getPrev(date);
+  const idx  = recs.findIndex(r => r.date === date);
+  const rec  = { date, weight, meal, notes };
+
+  if (idx >= 0) { recs[idx] = rec; toast('記録を更新しました'); }
+  else { recs.push(rec); recs.sort((a,b) => a.date.localeCompare(b.date)); toast('記録しました！'); }
+
+  saveRecs(); saveProfile();
+  pugReact(prev === null ? 'neutral' : weight < prev ? 'happy' : weight > prev ? 'sad' : 'neutral');
+  document.getElementById('noteIn').value = '';
+  renderAll();
+}
+
+function deleteRecord(date) {
+  if (!confirm(`${fmtDLong(date)} の記録を削除しますか？`)) return;
+  recs = recs.filter(r => r.date !== date);
+  saveRecs(); renderAll(); toast('削除しました');
+}
+
+function getPrev(date) {
+  const before = recs.filter(r => r.date < date);
+  return before.length ? before[before.length-1].weight : null;
+}
+
+function renderAll() { renderStats(); renderChart(); renderHist(); }
+
+function renderStats() {
+  const curW  = document.getElementById('curW');
+  const dayC  = document.getElementById('dayC');
+  const monC  = document.getElementById('monC');
+  const badge = document.getElementById('trendBadge');
+  const adv   = document.getElementById('advice');
+
+  if (!recs.length) {
+    curW.textContent = '—'; curW.className = 'stat-v';
+    dayC.textContent = '—'; dayC.className = 'stat-v';
+    monC.textContent = '—'; monC.className = 'stat-v';
+    badge.textContent = '記録待ち'; badge.className = 'trend same';
+    adv.textContent = '体重・食事・備考をまとめて記録すると、獣医師への説明がスムーズになります。';
+    adv.className = 'advice'; return;
+  }
+
+  const last = recs[recs.length-1];
+  curW.textContent = last.weight.toFixed(2) + ' kg'; curW.className = 'stat-v';
+
+  if (recs.length >= 2) {
+    const prev = recs[recs.length-2].weight;
+    const diff = last.weight - prev;
+    const rate = Math.abs(diff) / prev;
+    setDiff(dayC, diff);
+    if (diff > 0) {
+      badge.textContent = '↑ 増加傾向'; badge.className = 'trend up';
+      adv.className = rate >= .05 ? 'advice warn' : 'advice';
+      adv.textContent = rate >= .05
+        ? '⚠️ 前回から5%以上増加しています。食欲・活動量もあわせてご確認ください。'
+        : '前回より少し増えています。食事量や運動量を見直してみましょう。';
+    } else if (diff < 0) {
+      badge.textContent = '↓ 減少傾向'; badge.className = 'trend down';
+      adv.className = rate >= .05 ? 'advice warn' : 'advice';
+      adv.textContent = rate >= .05
+        ? '⚠️ 前回から5%以上減少しています。急激な減量は体調変化のサインかもしれません。'
+        : '前回よりも少し減っています。この調子で記録を続けましょう！';
+    } else {
+      badge.textContent = '→ 変化なし'; badge.className = 'trend same';
+      adv.className = 'advice';
+      adv.textContent = '前回と変わりありません。引き続き記録を続けてください。';
+    }
+  } else {
+    dayC.textContent = '—'; dayC.className = 'stat-v';
+    badge.textContent = '初回記録'; badge.className = 'trend same';
+    adv.className = 'advice';
+    adv.textContent = '最初の記録ができました！次回も記録して変化を追いましょう。';
+  }
+
+  const d30 = new Date(last.date); d30.setDate(d30.getDate() - 30);
+  const mRecs = recs.filter(r => r.date <= d30.toISOString().split('T')[0]);
+  if (mRecs.length) { setDiff(monC, last.weight - mRecs[mRecs.length-1].weight); }
+  else { monC.textContent = '—'; monC.className = 'stat-v'; }
+}
+
+function setDiff(el, diff) {
+  const s = diff > 0 ? '+' : '';
+  el.textContent = `${s}${diff.toFixed(2)} kg`;
+  el.className = 'stat-v ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : 'same');
+}
+
+function getFiltered() {
+  if (!recs.length) return [];
+  if (range === 'all') return recs;
+  const latest = new Date(recs[recs.length-1].date);
+  const cut = new Date(latest);
+  if (range === 'week') cut.setDate(cut.getDate() - 7);
+  else cut.setDate(cut.getDate() - 30);
+  const cs = cut.toISOString().split('T')[0];
+  return recs.filter(r => r.date >= cs);
+}
+
+function renderChart() {
+  const canvas = document.getElementById('wChart');
+  const ctx = canvas.getContext('2d');
+  const fil = getFiltered();
+  const labels = fil.map(r => fmtD(r.date));
+  const data   = fil.map(r => r.weight);
+
+  const minW = data.length ? Math.min(...data) : 0;
+  const maxW = data.length ? Math.max(...data) : 1;
+  const pad  = Math.max((maxW - minW) * .3, .3);
+  const yMin = Math.max(0, parseFloat((minW - pad).toFixed(1)));
+  const yMax = parseFloat((maxW + pad).toFixed(1));
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.options.scales.y.min = yMin;
+    chart.options.scales.y.max = yMax;
+    chart.update('active'); return;
+  }
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 200);
+  grad.addColorStop(0, 'rgba(75,120,85,.22)');
+  grad.addColorStop(1, 'rgba(75,120,85,0)');
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{
+      data, borderColor: '#4B7855', backgroundColor: grad,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#4B7855', pointBorderColor: 'white',
+      pointBorderWidth: 2.5, pointRadius: 5, pointHoverRadius: 7,
+      fill: true, tension: .35
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1C1814', titleColor: '#E8DDD0',
+          bodyColor: 'white', padding: 11, cornerRadius: 10,
+          callbacks: { label: c => `体重: ${c.parsed.y.toFixed(2)} kg` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: '#9C9088', font: { size: 11 } } },
+        y: { min: yMin, max: yMax, grid: { color: 'rgba(0,0,0,.05)' },
+             ticks: { color: '#9C9088', font: { size: 11 }, callback: v => v.toFixed(1) } }
+      }
+    }
+  });
+}
+
+function setRange(r, btn) {
+  range = r;
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (chart) { chart.destroy(); chart = null; }
+  renderChart();
+}
+
+function renderHist() {
+  const el  = document.getElementById('histList');
+  const cnt = document.getElementById('recCnt');
+  cnt.textContent = recs.length ? `全 ${recs.length} 件` : '';
+
+  if (!recs.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-ic">🐾</div><div class="empty-tx">まだ記録がありません<br>最初の体重を入力してください</div></div>`;
+    return;
+  }
+
+  const sorted = [...recs].reverse();
+  el.innerHTML = sorted.map((r, i) => {
+    const prev = sorted[i+1];
+    let diffHtml = '';
+    if (prev) {
+      const d = r.weight - prev.weight;
+      const s = d > 0 ? '+' : '';
+      const c = d > 0 ? 'up' : d < 0 ? 'down' : 'same';
+      diffHtml = `<span class="diff ${c}">${s}${d.toFixed(2)}</span>`;
+    } else {
+      diffHtml = `<span class="diff first">初回</span>`;
+    }
+    const mEmoji = r.meal === '良好' ? '😊' : r.meal === '普通' ? '😐' : '😕';
+    const noteH  = r.notes ? `<div class="hist-note" title="${r.notes}">📝 ${r.notes}</div>` : '';
+    return `<div class="hist-it">
+      <div class="hist-date">${fmtD(r.date)}</div>
+      <div class="hist-meta"><div class="hist-meal">${mEmoji} ${r.meal}</div>${noteH}</div>
+      <div class="hist-kg">${r.weight.toFixed(2)}<small> kg</small></div>
+      ${diffHtml}
+      <button class="btn-del" onclick="deleteRecord('${r.date}')" title="削除">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── pug reactions ──────────────────────────────────
+let pugT = null;
+function pugReact(mood) {
+  if (pugT) clearTimeout(pugT);
+  const svg = document.getElementById('pugSvg');
+  const msg = document.getElementById('pugMsg');
+  const ed = document.getElementById('eyes-d');
+  const eh = document.getElementById('eyes-h');
+  const es = document.getElementById('eyes-s');
+  const md = document.getElementById('mouth-d');
+  const mh = document.getElementById('mouth-h');
+  const ms = document.getElementById('mouth-s');
+  const te = document.getElementById('tears');
+
+  svg.classList.remove('pug-happy','pug-sad');
+  [ed,eh,es,md,mh,ms,te].forEach(el => el.setAttribute('display','none'));
+
+  if (mood === 'happy') {
+    eh.setAttribute('display',''); mh.setAttribute('display','');
+    svg.classList.add('pug-happy');
+    msg.textContent = 'やったー！軽くなった！🎉'; msg.style.color = 'var(--accent-h)';
+    spawnSparkles();
+    pugT = setTimeout(resetPug, 3500);
+  } else if (mood === 'sad') {
+    es.setAttribute('display',''); ms.setAttribute('display',''); te.setAttribute('display','');
+    svg.classList.add('pug-sad');
+    msg.textContent = 'うっ…増えちゃった…😢'; msg.style.color = 'var(--warn)';
+    spawnTears();
+    pugT = setTimeout(resetPug, 4000);
+  } else {
+    ed.setAttribute('display',''); md.setAttribute('display','');
+    msg.textContent = '記録したよ！🐾'; msg.style.color = 'var(--text-m)';
+    pugT = setTimeout(() => { msg.textContent = '体重を記録してね 🐾'; msg.style.color = 'var(--text-m)'; }, 2000);
+  }
+}
+
+function resetPug() {
+  document.getElementById('pugSvg').classList.remove('pug-happy','pug-sad');
+  document.getElementById('eyes-d').setAttribute('display','');
+  ['eyes-h','eyes-s','mouth-h','mouth-s','tears'].forEach(id => document.getElementById(id).setAttribute('display','none'));
+  document.getElementById('mouth-d').setAttribute('display','');
+  const msg = document.getElementById('pugMsg');
+  msg.textContent = '体重を記録してね 🐾'; msg.style.color = 'var(--text-m)';
+}
+
+function spawnSparkles() {
+  const w = document.getElementById('pugWrap');
+  ['✨','⭐','🎉','💫','🌟','🎊'].forEach((em, i) => setTimeout(() => {
+    const el = document.createElement('span'); el.className = 'sp-el'; el.textContent = em;
+    el.style.left = (15 + Math.random()*105) + 'px';
+    el.style.top  = (28 + Math.random()*65) + 'px';
+    w.appendChild(el); setTimeout(() => el.remove(), 1000);
+  }, i * 110));
+}
+
+function spawnTears() {
+  const w = document.getElementById('pugWrap');
+  for (let i = 0; i < 5; i++) setTimeout(() => {
+    [{l:54,t:86},{l:104,t:86}].forEach(pos => {
+      const el = document.createElement('div'); el.className = 'tr-el';
+      el.style.left = (pos.l + Math.random()*6-3) + 'px';
+      el.style.top  = pos.t + 'px';
+      w.appendChild(el); setTimeout(() => el.remove(), 800);
+    });
+  }, i * 340);
+}
+
+// ── export / import ────────────────────────────────
+function exportData() {
+  const name = document.getElementById('petName').value || 'うちの子';
+  const blob = new Blob([JSON.stringify({ petName: name, records: recs, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `${name}-体重記録-${toDay()}.json` });
+  a.click(); URL.revokeObjectURL(url); toast('記録をエクスポートしました');
+}
+
+function importData(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.petName) document.getElementById('petName').value = d.petName;
+      if (Array.isArray(d.records)) {
+        recs = d.records; recs.sort((a,b) => a.date.localeCompare(b.date));
+        saveRecs(); if (chart) { chart.destroy(); chart = null; }
+        renderAll(); toast('記録を読み込みました');
+      }
+    } catch { toast('読み込みに失敗しました'); }
+    e.target.value = '';
+  };
+  reader.readAsText(f);
+}
+
+// ── toast ────────────────────────────────────────
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+init();
+</script>
+</body>
+</html>
